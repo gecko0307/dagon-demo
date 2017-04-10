@@ -29,6 +29,7 @@ class PhysicsScene: BaseScene3D
     CharacterController character;
 
     TextureAsset atex;
+    TextureAsset atexGround;
 
     FontAsset afont;
 
@@ -40,6 +41,7 @@ class PhysicsScene: BaseScene3D
     override void onAssetsRequest()
     {
         atex = addTextureAsset("data/textures/crate.jpg");
+        atexGround = addTextureAsset("data/textures/grass.png");
         afont = addFontAsset("data/font/DroidSans.ttf", 18);
     }
 
@@ -57,6 +59,14 @@ class PhysicsScene: BaseScene3D
         RigidBody bGround = world.addStaticBody(Vector3f(0.0f, -1.0f, 0.0f));
         gGround = New!GeomBox(Vector3f(40.0f, 1.0f, 40.0f));
         world.addShapeComponent(bGround, gGround, Vector3f(0.0f, 0.0f, 0.0f), 1.0f);
+
+        auto plane = New!ShapePlane(8, 8, this);
+        auto p = createEntity3D();
+        p.drawable = plane;
+        auto mPlane = New!GenericMaterial(this);
+        mPlane.diffuse = atexGround.texture;
+        mPlane.roughness = 0.9f;
+        p.material = mPlane;
 
         ShapeBox shapeBox = New!ShapeBox(1, 1, 1, this);
         gBox = New!GeomBox(Vector3f(1.0f, 1.0f, 1.0f));
