@@ -196,19 +196,15 @@ bool triSplitPlane(Plane divider, Triangle tri, out TriSplitOutput output)
 
 class SplittedMesh: Owner, Drawable
 {
-    Texture texture;
-
     uint displayList1;
     uint displayList2;
 
     DynamicArray!Triangle tris1;
     DynamicArray!Triangle tris2;
 
-    this(Mesh m, Plane p, Texture tex, Owner owner)
+    this(Mesh m, Plane p, Owner owner)
     {
         super(owner);
-
-        texture = tex;
 
         foreach(tri; m)
         {
@@ -279,13 +275,11 @@ class SplittedMesh: Owner, Drawable
 
     void render()
     {
-        texture.bind();
         glDisable(GL_CULL_FACE);
         glColor4f(1, 0, 0, 1);
         glCallList(displayList1);
         glColor4f(0, 1, 0, 1);
         glCallList(displayList2);
-        texture.unbind();
     }
 
     ~this()
@@ -299,7 +293,6 @@ class SplittedMesh: Owner, Drawable
 
 class SplitScene: BaseScene3D
 {
-    TextureAsset tex;
     OBJAsset obj;
 
     this(SceneManager smngr)
@@ -309,10 +302,8 @@ class SplitScene: BaseScene3D
 
     override void onAssetsRequest()
     {
-        tex = addTextureAsset("data/imrod/imrod-diffuse.png");
-
         obj = New!OBJAsset();
-        addAsset(obj, "data/imrod/imrod.obj");
+        addAsset(obj, "data/obj/suzanne.obj");
     }
 
     override void onAllocate()
@@ -328,14 +319,8 @@ class SplitScene: BaseScene3D
 
         auto imrod = createEntity3D();
         Plane splitPlane = Plane(Vector3f(1, 0, 0), 0.5);
-        imrod.drawable = New!SplittedMesh(obj.mesh, splitPlane, tex.texture, this);
+        imrod.drawable = New!SplittedMesh(obj.mesh, splitPlane, this);
         imrod.scaling = Vector3f(0.8f, 0.8f, 0.8f);
-
-        auto mat = New!GenericMaterial(this);
-        mat.diffuse = tex.texture;
-        mat.roughness = 0.5f;
-        mat.shadeless = false;
-        //imrod.material = mat;
     }
 
     override void onKeyDown(int key)
