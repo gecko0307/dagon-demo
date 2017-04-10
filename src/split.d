@@ -326,7 +326,7 @@ class SplitScene: BaseScene3D
     override void onKeyDown(int key)
     {
         if (key == KEY_ESCAPE)
-            exitApplication();
+            sceneManager.loadAndSwitchToScene("Menu");
     }
 }
 
