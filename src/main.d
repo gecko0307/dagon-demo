@@ -90,54 +90,6 @@ class MenuScene: BaseScene3D
     }
 }
 
-class MyScene: BaseScene3D
-{
-    TextureAsset tex;
-
-    this(SceneManager smngr)
-    {
-        super(smngr);
-    }
-
-    override void onAssetsRequest()
-    {
-        tex = addTextureAsset("data/textures/crate.jpg");
-    }
-
-    override void onAllocate()
-    {
-        super.onAllocate();
-
-        addPointLight(Vector3f(-3, 3, 0), Color4f(1.0, 0.0, 0.0, 1.0));
-        addPointLight(Vector3f( 3, 3, 0), Color4f(0.0, 1.0, 1.0, 1.0));
-
-        auto freeview = New!Freeview(eventManager, this);
-        freeview.setZoom(6.0f);
-        view = freeview;
-
-        ShapeBox shapeBox = New!ShapeBox(1, 1, 1, this);
-
-        auto box = createEntity3D();
-        box.drawable = shapeBox;
-
-        auto mat = New!GenericMaterial(this);
-        mat.diffuse = tex.texture;
-        mat.roughness = 0.2f;
-        box.material = mat;
-    }
-
-    override void onStart()
-    {
-        super.onStart();
-    }
-
-    override void onKeyDown(int key)
-    {
-        if (key == KEY_ESCAPE)
-            sceneManager.loadAndSwitchToScene("Menu");
-    }
-}
-
 class MyApplication: SceneApplication
 {
     this(string[] args)
