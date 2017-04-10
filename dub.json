@@ -1,0 +1,31 @@
+{
+    "name": "dagondemo",
+    "description": "Dagon demo application",
+    "homepage": "https://github.com/gecko0307/dagon-demo",
+    "license": "Boost",
+    "authors": [
+        "Timur Gafarov"
+    ],
+
+    "importPaths": [
+        "src"
+    ],
+
+    "dependencies": {
+        "dagon": "~master"
+    },
+
+    "buildRequirements":[
+        "allowWarnings"
+    ],
+
+    "configurations": [
+        {
+            "name": "demo",
+            "targetType": "executable",
+            "sourcePaths": ["src"],
+            "mainSourceFile": "src/main.d"
+        }
+    ]
+}
+
