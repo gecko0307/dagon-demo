@@ -2,10 +2,11 @@ Dagon Demo Application
 ======================
 This is a test application that demonstrates features of [Dagon](https://github.com/gecko0307/dagon) game framework. You can use it as a basis to start your own project.
 
-The demo shows how to create several scenes and run them with a simple menu. 
+The demo shows how to create several scenes and run them with a simple menu. Every scene shows some part of Dagon's functionality, or how it can be extended.
 
 [![Screenshot1](/screenshots/demo1.jpg)](/screenshots/demo1.jpg)
 [![Screenshot2](/screenshots/demo2.jpg)](/screenshots/demo2.jpg)
+[![Screenshot2](/screenshots/demo3.jpg)](/screenshots/demo3.jpg)
 
 Prerequisites
 -------------
