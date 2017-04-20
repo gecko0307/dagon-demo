@@ -5,7 +5,7 @@ import dagon;
 import objtest;
 import iqmtest;
 import physicstest;
-import particles;
+import particlestest;
 
 import button;
 

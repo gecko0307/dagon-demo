@@ -1,13 +1,27 @@
 module particles;
 
-import std.stdio;
 import std.random;
-import dagon;
+import std.algorithm;
+import dlib.core.memory;
+import dlib.image.color;
+import dlib.math.vector;
+import dlib.math.matrix;
+import dlib.math.interpolation;
+import dlib.math.utils;
+import dlib.container.array;
+import derelict.opengl.gl;
+import dagon.core.ownership;
+import dagon.logics.entity;
+import dagon.logics.behaviour;
+import dagon.graphics.texture;
+import dagon.graphics.view;
 
 struct Particle
 {
-    Vector4f color;
+    Color4f startColor;
+    Color4f color;
     Vector3f position;
+    Vector3f acceleration;
     Vector3f velocity;
     Vector3f gravityVector;
     Vector2f scale;
@@ -16,9 +30,133 @@ struct Particle
     bool move;
 }
 
-class ParticleSystem: Owner, Drawable
+abstract class ForceField: Owner
+{
+    Vector3f position;
+
+    this(ParticleSystem psys)
+    {
+        super(psys);
+        psys.addForceField(this);
+        position = Vector3f(0, 0, 0);
+    }
+
+    void affect(ref Particle p);
+}
+
+class Attractor: ForceField
+{
+    float g;
+
+    this(ParticleSystem psys, Vector3f pos, float magnitude)
+    {
+        super(psys);
+        position = pos;
+        g = magnitude;
+    }
+
+    override void affect(ref Particle p)
+    {
+        Vector3f r = p.position - position;
+        float d = max(EPSILON, r.length);
+        p.acceleration += r * -g / (d * d);
+    }
+}
+
+class Deflector: ForceField
+{
+    float g;
+
+    this(ParticleSystem psys, Vector3f pos, float magnitude)
+    {
+        super(psys);
+        position = pos;
+        g = magnitude;
+    }
+
+    override void affect(ref Particle p)
+    {
+        Vector3f r = p.position - position;
+        float d = max(EPSILON, r.length);
+        p.acceleration += r * g / (d * d);
+    }
+}
+
+class Vortex: ForceField
+{
+    Vector3f direction;
+    float g1;
+    float g2;
+
+    this(ParticleSystem psys, Vector3f pos, Vector3f dir, float tangentMagnitude, float normalMagnitude)
+    {
+        super(psys);
+        position = pos;
+        direction = dir;
+        g1 = tangentMagnitude;
+        g2 = normalMagnitude;
+    }
+
+    override void affect(ref Particle p)
+    {
+        float proj = dot(p.position, direction);
+        Vector3f pos = position + direction * proj;
+        Vector3f r = p.position - pos;
+        float d = max(EPSILON, r.length);
+        Vector3f t = lerp(r, cross(r, direction), 0.25f);
+        p.acceleration += direction * g2 - t * g1 / (d * d);
+    }
+}
+
+class BlackHole: ForceField
+{
+    float g;
+
+    this(ParticleSystem psys, Vector3f pos, float magnitude)
+    {
+        super(psys);
+        position = pos;
+        g = magnitude;
+    }
+
+    override void affect(ref Particle p)
+    {
+        Vector3f r = p.position - position;
+        float d = r.length;
+        if (d <= 0.001f)
+            p.time = p.lifetime;
+        else
+            p.acceleration += r * -g / (d * d);
+    }
+}
+
+class ColorChanger: ForceField
+{
+    Color4f color;
+    float outerRadius;
+    float innerRadius;
+
+    this(ParticleSystem psys, Vector3f pos, Color4f color, float outerRadius, float innerRadius)
+    {
+        super(psys);
+        this.position = pos;
+        this.color = color;
+        this.outerRadius = outerRadius;
+        this.innerRadius = innerRadius;
+    }
+
+    override void affect(ref Particle p)
+    {
+        Vector3f r = p.position - position;
+        float t = clamp((r.length - innerRadius) / outerRadius, 0.0f, 1.0f);
+        p.color = lerp(color, p.color, t);
+    }
+}
+
+class ParticleSystem: Behaviour
 {
     Particle[] particles;
+    DynamicArray!ForceField forceFields;
 
     Texture texture;
     View view;
@@ -26,31 +164,34 @@ class ParticleSystem: Owner, Drawable
 
     float gravityAcceleration = 9.8f;
 
-    float minLifetime = 0.5f;
-    float maxLifetime = 1.0f;
+    float minLifetime = 1.0f;
+    float maxLifetime = 3.0f;
 
     float minSize = 0.25f;
     float maxSize = 1.0f;
 
+    float initialPositionRandomRadius = 1.0f;
+
     Vector3f initialDirection = Vector3f(0, 1, 0);
-    float initialDirectionRandomFactor = 0.3f;
-    float minInitialSpeed = 10.0f;
-    float maxInitialSpeed = 20.0f;
+
+    float initialDirectionRandomFactor = 1.0f;
+    float minInitialSpeed = 1.0f;
+    float maxInitialSpeed = 5.0f;
     float airFrictionDamping = 0.98f;
 
-    Color4f startColor = Color4f(0, 0.5f, 1, 1);
+    Color4f startColor = Color4f(1, 0.5f, 0, 1);
     Color4f endColor = Color4f(1, 1, 1, 0);
 
     bool haveParticlesToDraw;
 
-    this(Texture t, View v, Owner o)
+    this(Entity e, uint numParticles, Texture t, View v)
     {
-        super(o);
+        super(e);
 
         texture = t;
         view = v;
 
-        particles = New!(Particle[])(300);
+        particles = New!(Particle[])(numParticles);
         foreach(ref p; particles)
         {
             resetParticle(p);
@@ -60,9 +201,15 @@ class ParticleSystem: Owner, Drawable
     ~this()
     {
         Delete(particles);
+        forceFields.free();
     }
 
-    void update(double dt)
+    void addForceField(ForceField ff)
+    {
+        forceFields.append(ff);
+    }
+
+    override void update(double dt)
     {
         invViewMatRot = matrix3x3to4x4(matrix4x4to3x3(view.viewMatrix).transposed);
 
@@ -73,13 +220,18 @@ class ParticleSystem: Owner, Drawable
             p.time += dt;
             if (p.move)
             {
-                p.velocity += p.gravityVector * gravityAcceleration * dt;
+                p.acceleration = Vector3f(0, 0, 0);
+                foreach(ref ff; forceFields)
+                {
+                    ff.affect(p);
+                }
+                p.velocity += p.acceleration * dt;
                 p.velocity = p.velocity * airFrictionDamping;
                 p.position += p.velocity * dt;
             }
 
-            float t = p.time / p.lifetime;
-            p.color = lerp(startColor, endColor, t);
+            //float t = p.time / p.lifetime;
+            //p.color = lerp(startColor, endColor, t);
 
             haveParticlesToDraw = true;
         }
@@ -89,7 +241,13 @@ class ParticleSystem: Owner, Drawable
 
     void resetParticle(ref Particle p)
     {
-        p.position = Vector3f(0, 0, 0);
+        if (initialPositionRandomRadius > 0.0f)
+        {
+            float randomDist = uniform(0.0f, initialPositionRandomRadius);
+            p.position = entity.position + randomUnitVector3!float * randomDist;
+        }
+        else
+            p.position = entity.position;
         Vector3f r = randomUnitVector3!float;
         float initialSpeed = uniform(minInitialSpeed, maxInitialSpeed);
         p.velocity = lerp(initialDirection, r, initialDirectionRandomFactor) * initialSpeed;
@@ -99,6 +257,8 @@ class ParticleSystem: Owner, Drawable
         p.scale = Vector2f(s, s);
         p.time = 0.0f;
         p.move = true;
+        p.startColor = startColor;
+        p.color = p.startColor;
     }
 
     pragma(inline) static void drawUnitBillboard()
@@ -111,69 +271,53 @@ class ParticleSystem: Owner, Drawable
         glEnd();
     }
 
-    void render()
+    override void render()
     {
-        if (!haveParticlesToDraw)
-            return;
+        glPushMatrix();
+        // Get rid of entity's rotation/scaling - we are gonna work in world space
+        glMultMatrixf(entity.invTransformation.arrayof.ptr);
 
-        texture.bind();
         glPushAttrib(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_ENABLE_BIT);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-        glDepthMask(0);
         glDisable(GL_LIGHTING);
-        foreach(ref p; particles)
-        if (p.time < p.lifetime)
+
+        if (haveParticlesToDraw)
         {
-            glPushMatrix();       
-            glTranslatef(p.position.x, p.position.y, p.position.z);
-            // Fast billboard rendering trick: compensate camera rotation
-            glMultMatrixf(invViewMatRot.arrayof.ptr);
-            glScalef(p.scale.x, p.scale.y, 1.0f);
-            glColor4fv(p.color.arrayof.ptr);
-            drawUnitBillboard();
-            glPopMatrix();
+            // Draw particles
+            texture.bind();
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+            glDepthMask(0);
+            foreach(ref p; particles)
+            if (p.time < p.lifetime)
+            {
+                glPushMatrix();  
+                glTranslatef(p.position.x, p.position.y, p.position.z);
+                // Fast billboard rendering trick: compensate camera rotation
+                glMultMatrixf(invViewMatRot.arrayof.ptr);
+                glScalef(p.scale.x, p.scale.y, 1.0f);
+                glColor4fv(p.color.arrayof.ptr);
+                drawUnitBillboard();
+                glPopMatrix();
+            }
+            texture.unbind();
         }
+
+        // Draw force fields
+        glDisable(GL_DEPTH_TEST);
+        glPointSize(5.0f);
+        glColor4f(1, 0, 0, 1);
+        foreach(ref ff; forceFields)
+        {
+            glBegin(GL_POINTS);
+            glVertex3fv(ff.position.arrayof.ptr);
+            glEnd();
+        }
+        glPointSize(1.0f);
+        glEnable(GL_DEPTH_TEST);
+
         glPopAttrib();
-        texture.unbind();
-    }
-}
 
-class ParticlesScene: BaseScene3D
-{
-    TextureAsset texAsset;
-
-    this(SceneManager smngr)
-    {
-        super(smngr);
-        backgroundColor = Color4f(0, 0, 0, 1);
-    }
-
-    override void onAssetsRequest()
-    {
-        texAsset = addTextureAsset("data/textures/particle.png");
-    }
-
-    override void onAllocate()
-    {
-        super.onAllocate();
-
-        lightManager.addPointLight(Vector3f(-3, 2, 0), Color4f(1.0, 0.0, 0.0, 1.0));
-        lightManager.addPointLight(Vector3f(3, 2, 0), Color4f(0.0, 1.0, 1.0, 1.0));
-    
-        auto freeview = New!Freeview(eventManager, this);
-        freeview.setZoom(6.0f);
-        view = freeview;
-
-        auto psys = New!ParticleSystem(texAsset.texture, freeview, this);
-        auto par = createEntity3D();
-        par.drawable = psys;
-    }
-
-    override void onKeyDown(int key)
-    {
-        if (key == KEY_ESCAPE)
-            sceneManager.loadAndSwitchToScene("Menu");
+        glPopMatrix();
     }
 }
 
