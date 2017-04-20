@@ -6,6 +6,7 @@ import dlib.core.memory;
 import dlib.image.color;
 import dlib.math.vector;
 import dlib.math.matrix;
+import dlib.math.affine;
 import dlib.math.interpolation;
 import dlib.math.utils;
 import dlib.container.array;
@@ -30,15 +31,16 @@ struct Particle
     bool move;
 }
 
-abstract class ForceField: Owner
+abstract class ForceField: Behaviour
 {
-    Vector3f position;
-
-    this(ParticleSystem psys)
+    this(Entity e, ParticleSystem psys)
     {
-        super(psys);
+        super(e);
         psys.addForceField(this);
-        position = Vector3f(0, 0, 0);
+    }
+
+    void upadte(double dt)
+    {
     }
 
     void affect(ref Particle p);
@@ -48,16 +50,15 @@ class Attractor: ForceField
 {
     float g;
 
-    this(ParticleSystem psys, Vector3f pos, float magnitude)
+    this(Entity e, ParticleSystem psys, float magnitude)
     {
-        super(psys);
-        position = pos;
+        super(e, psys);
         g = magnitude;
     }
 
     override void affect(ref Particle p)
     {
-        Vector3f r = p.position - position;
+        Vector3f r = p.position - entity.position;
         float d = max(EPSILON, r.length);
         p.acceleration += r * -g / (d * d);
     }
@@ -67,16 +68,15 @@ class Deflector: ForceField
 {
     float g;
 
-    this(ParticleSystem psys, Vector3f pos, float magnitude)
+    this(Entity e, ParticleSystem psys, float magnitude)
     {
-        super(psys);
-        position = pos;
+        super(e, psys);
         g = magnitude;
     }
 
     override void affect(ref Particle p)
     {
-        Vector3f r = p.position - position;
+        Vector3f r = p.position - entity.position;
         float d = max(EPSILON, r.length);
         p.acceleration += r * g / (d * d);
     }
@@ -84,23 +84,21 @@ class Deflector: ForceField
 
 class Vortex: ForceField
 {
-    Vector3f direction;
     float g1;
     float g2;
 
-    this(ParticleSystem psys, Vector3f pos, Vector3f dir, float tangentMagnitude, float normalMagnitude)
+    this(Entity e, ParticleSystem psys, float tangentMagnitude, float normalMagnitude)
     {
-        super(psys);
-        position = pos;
-        direction = dir;
+        super(e, psys);
         g1 = tangentMagnitude;
         g2 = normalMagnitude;
     }
 
     override void affect(ref Particle p)
     {
+        Vector3f direction = entity.transformation.forward;
         float proj = dot(p.position, direction);
-        Vector3f pos = position + direction * proj;
+        Vector3f pos = entity.position + direction * proj;
         Vector3f r = p.position - pos;
         float d = max(EPSILON, r.length);
         Vector3f t = lerp(r, cross(r, direction), 0.25f);
@@ -112,16 +110,15 @@ class BlackHole: ForceField
 {
     float g;
 
-    this(ParticleSystem psys, Vector3f pos, float magnitude)
+    this(Entity e, ParticleSystem psys, float magnitude)
     {
-        super(psys);
-        position = pos;
+        super(e, psys);
         g = magnitude;
     }
 
     override void affect(ref Particle p)
     {
-        Vector3f r = p.position - position;
+        Vector3f r = p.position - entity.position;
         float d = r.length;
         if (d <= 0.001f)
             p.time = p.lifetime;
@@ -136,10 +133,9 @@ class ColorChanger: ForceField
     float outerRadius;
     float innerRadius;
 
-    this(ParticleSystem psys, Vector3f pos, Color4f color, float outerRadius, float innerRadius)
+    this(Entity e, ParticleSystem psys, Color4f color, float outerRadius, float innerRadius)
     {
-        super(psys);
-        this.position = pos;
+        super(e, psys);
         this.color = color;
         this.outerRadius = outerRadius;
         this.innerRadius = innerRadius;
@@ -147,7 +143,7 @@ class ColorChanger: ForceField
 
     override void affect(ref Particle p)
     {
-        Vector3f r = p.position - position;
+        Vector3f r = p.position - entity.position;
         float t = clamp((r.length - innerRadius) / outerRadius, 0.0f, 1.0f);
         p.color = lerp(color, p.color, t);
     }
@@ -170,7 +166,7 @@ class ParticleSystem: Behaviour
     float minSize = 0.25f;
     float maxSize = 1.0f;
 
-    float initialPositionRandomRadius = 1.0f;
+    float initialPositionRandomRadius = 0.0f;
 
     Vector3f initialDirection = Vector3f(0, 1, 0);
 
@@ -230,8 +226,8 @@ class ParticleSystem: Behaviour
                 p.position += p.velocity * dt;
             }
 
-            //float t = p.time / p.lifetime;
-            //p.color = lerp(startColor, endColor, t);
+            float t = p.time / p.lifetime;
+            p.color.a = lerp(1.0f, 0.0f, t);
 
             haveParticlesToDraw = true;
         }
@@ -300,16 +296,17 @@ class ParticleSystem: Behaviour
                 glPopMatrix();
             }
             texture.unbind();
+            glDisable(GL_BLEND);
         }
 
         // Draw force fields
         glDisable(GL_DEPTH_TEST);
         glPointSize(5.0f);
-        glColor4f(1, 0, 0, 1);
+        glColor4f(1, 1, 1, 1);
         foreach(ref ff; forceFields)
         {
             glBegin(GL_POINTS);
-            glVertex3fv(ff.position.arrayof.ptr);
+            glVertex3fv(ff.entity.position.arrayof.ptr);
             glEnd();
         }
         glPointSize(1.0f);

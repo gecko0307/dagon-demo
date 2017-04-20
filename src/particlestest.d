@@ -1,6 +1,7 @@
 module particlestest;
 
 import std.stdio;
+import std.math;
 import dagon;
 
 import particles;
@@ -34,9 +35,19 @@ class ParticlesScene: BaseScene3D
 
         particles = createEntity3D();
         auto psys = New!ParticleSystem(particles, 400, texAsset.texture, freeview);
-        auto ff1 = New!Vortex(psys, Vector3f(3, 0, 0), Vector3f(0, 1, 0), 100, 10);
-        auto ff2 = New!BlackHole(psys, Vector3f(-5, 0, 0), 100);
-        auto ff3 = New!ColorChanger(psys, Vector3f(0, 2, 0), Color4f(0.5f, 0.0, 1, 1), 2, 0);
+
+        auto eVortex = createEntity3D();
+        eVortex.position = Vector3f(3, 0, 0);
+        eVortex.rotation = rotationQuaternion(0, degtorad(-90.0f));
+        auto ff1 = New!Vortex(eVortex, psys, 100, 10);
+
+        auto eBlackHole = createEntity3D();
+        eBlackHole.position = Vector3f(-5, 0, 0);
+        auto ff2 = New!BlackHole(eBlackHole, psys, 100);
+
+        auto eColorChanger = createEntity3D();
+        eColorChanger.position = Vector3f(3, 3, 0);
+        auto ff3 = New!ColorChanger(eColorChanger, psys, Color4f(0.5f, 0.0, 1, 1), 2, 0);
     }
 
     override void onUpdate(double dt)
