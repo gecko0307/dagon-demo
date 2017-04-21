@@ -22,12 +22,14 @@ struct Particle
     Color4f startColor;
     Color4f color;
     Vector3f position;
+    Vector3f[8] trail;
     Vector3f acceleration;
     Vector3f velocity;
     Vector3f gravityVector;
     Vector2f scale;
     float lifetime;
     float time;
+    float trailTimer;
     bool move;
 }
 
@@ -178,6 +180,8 @@ class ParticleSystem: Behaviour
     Color4f startColor = Color4f(1, 0.5f, 0, 1);
     Color4f endColor = Color4f(1, 1, 1, 0);
 
+    float trailTimeStep = 1.0f / 30.0f;
+
     bool haveParticlesToDraw;
 
     this(Entity e, uint numParticles, Texture t, View v)
@@ -223,6 +227,18 @@ class ParticleSystem: Behaviour
                 }
                 p.velocity += p.acceleration * dt;
                 p.velocity = p.velocity * airFrictionDamping;
+
+                p.trailTimer += dt;
+                if (p.trailTimer >= trailTimeStep)
+                {
+                    p.trailTimer -= trailTimeStep;
+                    for(uint i = p.trail.length-1; i > 0; i--)
+                    {
+                        p.trail[i] = p.trail[i-1];
+                    }
+                    p.trail[0] = p.position;
+                }
+
                 p.position += p.velocity * dt;
             }
 
@@ -244,6 +260,7 @@ class ParticleSystem: Behaviour
         }
         else
             p.position = entity.position;
+        p.trail[] = p.position;
         Vector3f r = randomUnitVector3!float;
         float initialSpeed = uniform(minInitialSpeed, maxInitialSpeed);
         p.velocity = lerp(initialDirection, r, initialDirectionRandomFactor) * initialSpeed;
@@ -255,6 +272,7 @@ class ParticleSystem: Behaviour
         p.move = true;
         p.startColor = startColor;
         p.color = p.startColor;
+        p.trailTimer = 0.0f;
     }
 
     pragma(inline) static void drawUnitBillboard()
@@ -279,23 +297,42 @@ class ParticleSystem: Behaviour
         if (haveParticlesToDraw)
         {
             // Draw particles
-            texture.bind();
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE);
             glDepthMask(0);
+            glLineWidth(5.0f);
             foreach(ref p; particles)
             if (p.time < p.lifetime)
             {
+                glColor4fv(p.color.arrayof.ptr);
+
+                texture.bind();
                 glPushMatrix();  
                 glTranslatef(p.position.x, p.position.y, p.position.z);
                 // Fast billboard rendering trick: compensate camera rotation
                 glMultMatrixf(invViewMatRot.arrayof.ptr);
                 glScalef(p.scale.x, p.scale.y, 1.0f);
-                glColor4fv(p.color.arrayof.ptr);
                 drawUnitBillboard();
                 glPopMatrix();
+                texture.unbind();
+
+                glBegin(GL_LINE_STRIP);
+
+                Color4f color = p.color;
+                float a = color.a / cast(float)p.trail.length;
+                glColor4fv(color.arrayof.ptr);
+                glVertex3fv(p.position.arrayof.ptr);
+
+                foreach(ref t; p.trail)
+                {
+                    color.a -= a;
+                    glColor4fv(color.arrayof.ptr);
+                    glVertex3fv(t.arrayof.ptr);
+                }
+
+                glEnd();
             }
-            texture.unbind();
+            glLineWidth(1.0f);
             glDisable(GL_BLEND);
         }
 
