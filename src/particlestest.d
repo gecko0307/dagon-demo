@@ -50,9 +50,8 @@ class ParticlesScene: BaseScene3D
         auto ff3 = New!ColorChanger(eColorChanger, psys, Color4f(0.5f, 0.0, 1, 1), 2, 0);
     }
 
-    override void onUpdate(double dt)
+    override void onLogicsUpdate(double dt)
     {
-        super.onUpdate(dt);
         if (eventManager.keyPressed[KEY_LEFT]) particles.position.x -= 5.0f * dt;
         if (eventManager.keyPressed[KEY_RIGHT]) particles.position.x += 5.0f * dt;
         if (eventManager.keyPressed[KEY_DOWN]) particles.position.y -= 5.0f * dt;
