@@ -15,6 +15,7 @@ class ParticlesScene: BaseScene3D
     {
         super(smngr);
         backgroundColor = Color4f(0, 0, 0, 1);
+        assetManager.liveUpdate = false;
     }
 
     override void onAssetsRequest()
@@ -28,6 +29,9 @@ class ParticlesScene: BaseScene3D
 
         lightManager.addPointLight(Vector3f(-3, 2, 0), Color4f(1.0, 0.0, 0.0, 1.0));
         lightManager.addPointLight(Vector3f(3, 2, 0), Color4f(0.0, 1.0, 1.0, 1.0));
+
+        addPointLight(Vector3f(0, 5, 2), Color4f(1.0, 0.0, 0.0, 1.0));
+        addPointLight(Vector3f(0, 5, -2), Color4f(1.0, 1.0, 1.0, 1.0));
     
         auto freeview = New!Freeview(eventManager, this);
         freeview.setZoom(6.0f);

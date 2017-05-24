@@ -9,7 +9,7 @@ class ButtonBehaiour: Behaviour
     Color4f color;
     bool mouseOver = false;
     TextLine label;
-    scope void delegate() onClick;
+    void delegate() onClick;
 
     // Color animation
     Color4f backgroundPrevColor;

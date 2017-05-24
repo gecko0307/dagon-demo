@@ -6,6 +6,8 @@ import objtest;
 import iqmtest;
 import physicstest;
 import particlestest;
+import split;
+import editortest;
 
 import button;
 
@@ -58,27 +60,27 @@ class MenuScene: BaseScene3D
         buttonExBeh.onClick = &onClickButtonExit;
     }
 
-    void onClickButton1()
+    scope void onClickButton1()
     {
         sceneManager.loadAndSwitchToScene("OBJScene", false);
     }
 
-    void onClickButton2()
+    scope void onClickButton2()
     {
         sceneManager.loadAndSwitchToScene("IQMScene", false);
     }
 
-    void onClickButton3()
+    scope void onClickButton3()
     {
         sceneManager.loadAndSwitchToScene("PhysicsScene", false);
     }
 
-    void onClickButton4()
+    scope void onClickButton4()
     {
         sceneManager.loadAndSwitchToScene("ParticlesScene", false);
     }
 
-    void onClickButtonExit()
+    scope void onClickButtonExit()
     {
         exitApplication();
     }
@@ -87,54 +89,6 @@ class MenuScene: BaseScene3D
     {
         if (key == KEY_ESCAPE)
             exitApplication();
-    }
-}
-
-class MyScene: BaseScene3D
-{
-    TextureAsset tex;
-
-    this(SceneManager smngr)
-    {
-        super(smngr);
-    }
-
-    override void onAssetsRequest()
-    {
-        tex = addTextureAsset("data/textures/crate.jpg");
-    }
-
-    override void onAllocate()
-    {
-        super.onAllocate();
-
-        addPointLight(Vector3f(-3, 3, 0), Color4f(1.0, 0.0, 0.0, 1.0));
-        addPointLight(Vector3f( 3, 3, 0), Color4f(0.0, 1.0, 1.0, 1.0));
-
-        auto freeview = New!Freeview(eventManager, this);
-        freeview.setZoom(6.0f);
-        view = freeview;
-
-        ShapeBox shapeBox = New!ShapeBox(1, 1, 1, this);
-
-        auto box = createEntity3D();
-        box.drawable = shapeBox;
-
-        auto mat = New!GenericMaterial(this);
-        mat.diffuse = tex.texture;
-        mat.roughness = 0.2f;
-        box.material = mat;
-    }
-
-    override void onStart()
-    {
-        super.onStart();
-    }
-
-    override void onKeyDown(int key)
-    {
-        if (key == KEY_ESCAPE)
-            sceneManager.loadAndSwitchToScene("Menu");
     }
 }
 
