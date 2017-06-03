@@ -58,27 +58,27 @@ class MenuScene: BaseScene3D
         buttonExBeh.onClick = &onClickButtonExit;
     }
 
-    scope void onClickButton1()
+    void onClickButton1()
     {
         sceneManager.loadAndSwitchToScene("OBJScene", false);
     }
 
-    scope void onClickButton2()
+    void onClickButton2()
     {
         sceneManager.loadAndSwitchToScene("IQMScene", false);
     }
 
-    scope void onClickButton3()
+    void onClickButton3()
     {
         sceneManager.loadAndSwitchToScene("PhysicsScene", false);
     }
 
-    scope void onClickButton4()
+    void onClickButton4()
     {
         sceneManager.loadAndSwitchToScene("ParticlesScene", false);
     }
 
-    scope void onClickButtonExit()
+    void onClickButtonExit()
     {
         exitApplication();
     }
