@@ -6,8 +6,6 @@ import objtest;
 import iqmtest;
 import physicstest;
 import particlestest;
-import split;
-import editortest;
 
 import button;
 
