@@ -3,6 +3,16 @@ module objtest;
 import std.stdio;
 import dagon;
 
+class DummyOwner: Owner
+{
+    this(Owner o)
+    {
+        super(o);
+    }
+}
+
+import dlib.filesystem.local;
+
 class OBJScene: BaseScene3D
 {
     OBJAsset obj;
@@ -14,7 +24,7 @@ class OBJScene: BaseScene3D
 
     override void onAssetsRequest()
     {
-        obj = New!OBJAsset();
+        obj = New!OBJAsset(assetManager);
         addAsset(obj, "data/obj/suzanne.obj");
     }
 
@@ -24,25 +34,28 @@ class OBJScene: BaseScene3D
 
         lightManager.addPointLight(Vector3f(-3, 2, 0), Color4f(1.0, 0.0, 0.0, 1.0));
         lightManager.addPointLight(Vector3f(3, 2, 0), Color4f(0.0, 1.0, 1.0, 1.0));
-    
-        auto freeview = New!Freeview(eventManager, this);
+ 
+        auto freeview = New!Freeview(eventManager, assetManager);
         freeview.setZoom(6.0f);
         view = freeview;
 
-        auto suzanne = createEntity3D();
-        suzanne.drawable = obj.mesh;
-        suzanne.scaling = Vector3f(0.8f, 0.8f, 0.8f);
+        Entity e = New!Entity(eventManager, assetManager);
+        auto lr = New!LightReceiver(e, lightManager);
+        entities3D.append(e);
 
-        auto mat = New!GenericMaterial(this);
+        e.drawable = obj.mesh;
+        e.scaling = Vector3f(0.8f, 0.8f, 0.8f);
+
+        auto mat = New!GenericMaterial(assetManager);
         mat.roughness = 0.9f;
         mat.shadeless = false;
-        suzanne.material = mat;
+        e.material = mat;
     }
 
     override void onKeyDown(int key)
     {
         if (key == KEY_ESCAPE)
-            sceneManager.loadAndSwitchToScene("Menu");
+            sceneManager.goToScene("Menu");
     }
 }
 

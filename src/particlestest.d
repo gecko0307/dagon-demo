@@ -15,7 +15,6 @@ class ParticlesScene: BaseScene3D
     {
         super(smngr);
         backgroundColor = Color4f(0, 0, 0, 1);
-        assetManager.liveUpdate = false;
     }
 
     override void onAssetsRequest()
@@ -33,7 +32,7 @@ class ParticlesScene: BaseScene3D
         addPointLight(Vector3f(0, 5, 2), Color4f(1.0, 0.0, 0.0, 1.0));
         addPointLight(Vector3f(0, 5, -2), Color4f(1.0, 1.0, 1.0, 1.0));
     
-        auto freeview = New!Freeview(eventManager, this);
+        auto freeview = New!Freeview(eventManager, assetManager);
         freeview.setZoom(6.0f);
         view = freeview;
 
@@ -65,7 +64,7 @@ class ParticlesScene: BaseScene3D
     override void onKeyDown(int key)
     {
         if (key == KEY_ESCAPE)
-            sceneManager.loadAndSwitchToScene("Menu");
+            sceneManager.goToScene("Menu");
     }
 }
 

@@ -1,5 +1,7 @@
 module button;
 
+import std.stdio;
+
 import dagon;
 
 class ButtonBehaiour: Behaviour

@@ -60,22 +60,22 @@ class MenuScene: BaseScene3D
 
     void onClickButton1()
     {
-        sceneManager.loadAndSwitchToScene("OBJScene", false);
+        sceneManager.goToScene("OBJScene", false);
     }
 
     void onClickButton2()
     {
-        sceneManager.loadAndSwitchToScene("IQMScene", false);
+        sceneManager.goToScene("IQMScene", false);
     }
 
     void onClickButton3()
     {
-        sceneManager.loadAndSwitchToScene("PhysicsScene", false);
+        sceneManager.goToScene("PhysicsScene", false);
     }
 
     void onClickButton4()
     {
-        sceneManager.loadAndSwitchToScene("ParticlesScene", false);
+        sceneManager.goToScene("ParticlesScene", false);
     }
 
     void onClickButtonExit()
@@ -111,7 +111,7 @@ class MyApplication: SceneApplication
         ParticlesScene parScene = New!ParticlesScene(sceneManager);
         sceneManager.addScene(parScene, "ParticlesScene");
 
-        sceneManager.loadAndSwitchToScene("Menu");
+        sceneManager.goToScene("Menu");
     }
 }
 
@@ -122,5 +122,6 @@ void main(string[] args)
     app.run();
     Delete(app);
     writeln("Allocated memory at end: ", allocatedMemory);
+    //printMemoryLog();
 }
 

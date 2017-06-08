@@ -55,6 +55,8 @@ class PhysicsScene: BaseScene3D
 
     BVHTree!Triangle bvh;
 
+    bool initializedPhysics = false;
+
     this(SceneManager smngr)
     {
         super(smngr);
@@ -62,12 +64,12 @@ class PhysicsScene: BaseScene3D
 
     override void onAssetsRequest()
     {
-        aFont = addFontAsset("data/font/DroidSans.ttf", 18);
+        aFont = addFontAsset("data/font/DroidSans.ttf", 14);
 
         aTexCrate = addTextureAsset("data/textures/crate.jpg");
         aTexTiles = addTextureAsset("data/textures/tiles.jpg");
 
-        aLevel = New!OBJAsset();
+        aLevel = New!OBJAsset(assetManager);
         addAsset(aLevel, "data/obj/level.obj");
     }
 
@@ -90,15 +92,15 @@ class PhysicsScene: BaseScene3D
 
         auto level = createEntity3D();
         level.drawable = aLevel.mesh;
-        auto mTiles = New!GenericMaterial(this);
+        auto mTiles = New!GenericMaterial(assetManager);
         mTiles.diffuse = aTexTiles.texture;
         mTiles.roughness = 0.9f;
         level.material = mTiles;
 
-        ShapeBox shapeBox = New!ShapeBox(1, 1, 1, this);
+        ShapeBox shapeBox = New!ShapeBox(1, 1, 1, assetManager);
         gBox = New!GeomBox(Vector3f(1.0f, 1.0f, 1.0f));
 
-        auto mat = New!GenericMaterial(this);
+        auto mat = New!GenericMaterial(assetManager);
         mat.diffuse = aTexCrate.texture;
         mat.roughness = 0.2f;
 
@@ -114,50 +116,69 @@ class PhysicsScene: BaseScene3D
             world.addShapeComponent(bBox, gBox, Vector3f(0.0f, 0.0f, 0.0f), 10.0f);
         }
 
-        fpview = New!FirstPersonView(eventManager, Vector3f(10.0f, 1.8f, 0.0f), this);
+        fpview = New!FirstPersonView(eventManager, Vector3f(10.0f, 1.8f, 0.0f), assetManager);
         fpview.camera.turn = -90.0f;
         view = fpview;
 
         gSphere = New!GeomEllipsoid(Vector3f(0.9f, 1.0f, 0.9f));
         gSensor = New!GeomBox(Vector3f(0.5f, 0.5f, 0.5f));
-        character = New!CharacterController(world, fpview.camera.position, 80.0f, gSphere, this);
+        character = New!CharacterController(world, fpview.camera.position, 80.0f, gSphere, assetManager);
         character.createSensor(gSensor, Vector3f(0.0f, -0.75f, 0.0f));
 
-        auto text = New!TextLine(aFont.font, "Hello! Привет!", this);
+        auto text = New!TextLine(aFont.font, "Press <LMB> to look around, WASD to move, spacebar to jump", assetManager);
         text.color = Color4f(1.0f, 1.0f, 1.0f, 1.0f);
         auto textE = createEntity2D();
         textE.drawable = text;
-        textE.position = Vector3f(16.0f, 16.0f, 0.0f);
+        textE.position = Vector3f(16.0f, eventManager.windowHeight - 30.0f, 0.0f);
+
+        initializedPhysics = true;
     }
     
     override void onRelease()
     {
-        Delete(world);
-        Delete(gGround);
-        Delete(gBox);
-        Delete(gSphere);
-        Delete(gSensor);
-        bvh.free();
+        super.onRelease();
+        if (initializedPhysics)
+        {
+            Delete(world);
+            Delete(gGround);
+            Delete(gBox);
+            Delete(gSphere);
+            Delete(gSensor);
+            bvh.free();
+            initializedPhysics = false;
+        }
     }
 
     override void onStart()
     {
         super.onStart();
-
-        eventManager.showCursor(false);
-        eventManager.setMouseToCenter();
     }
 
     override void onEnd()
     {
         super.onEnd();
-        eventManager.showCursor(true);
     }
 
     override void onKeyDown(int key)
     {
         if (key == KEY_ESCAPE)
-            sceneManager.loadAndSwitchToScene("Menu");
+            sceneManager.goToScene("Menu");
+    }
+    
+    override void onMouseButtonDown(int button)
+    {
+        if (button == MB_LEFT)
+        {
+            fpview.active = true;
+        }
+    }
+    
+    override void onMouseButtonUp(int button)
+    {
+        if (button == MB_LEFT)
+        {
+            fpview.active = false;
+        }
     }
 
     void controlCharacter(double dt)
@@ -181,4 +202,5 @@ class PhysicsScene: BaseScene3D
         fpview.camera.position = character.rbody.position;
     }
 }
+
 
