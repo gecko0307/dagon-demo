@@ -147,8 +147,8 @@ class GeomBox: Geometry
 
     override AABB boundingBox(Vector3f position)
     {
-        return AABB(position, halfSize);
-            //Vector3f(bsphereRadius, bsphereRadius, bsphereRadius));
+        return AABB(position,
+            Vector3f(bsphereRadius, bsphereRadius, bsphereRadius));
     }
 
     void free()

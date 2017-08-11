@@ -36,6 +36,15 @@ BVHTree!Triangle meshBVH(Mesh mesh)
 class PhysicsScene: BaseScene3D
 { 
     FirstPersonView fpview;
+    
+    NonPBRBackend nonPBRBackend;
+    Entity eShadowArea;
+    ShadowArea sp1;
+    ShadowArea sp2;
+    ShadowArea sp3;
+    ShadowMap sm1;
+    ShadowMap sm2;
+    ShadowMap sm3;
 
     PhysicsWorld world;
 
@@ -76,6 +85,27 @@ class PhysicsScene: BaseScene3D
     override void onAllocate()
     {
         super.onAllocate();
+        
+        fpview = New!FirstPersonView(eventManager, Vector3f(10.0f, 1.8f, 0.0f), assetManager);
+        fpview.camera.turn = -90.0f;
+        view = fpview;
+        
+        eShadowArea = createEntity3D();
+        eShadowArea.position = Vector3f(0, 5, 3);
+        eShadowArea.rotation = rotationQuaternion(Axis.x, degtorad(-45.0f));
+        eShadowArea.visible = false;
+        
+        sp1 = New!ShadowArea(eShadowArea, view, 10, 10, -10, 10);
+        sp2 = New!ShadowArea(eShadowArea, view, 30, 30, -30, 30);
+        sp3 = New!ShadowArea(eShadowArea, view, 100, 100, -100, 100);
+        sm1 = New!ShadowMap(1024, this, sp1, assetManager);
+        sm2 = New!ShadowMap(1024, this, sp2, assetManager);
+        sm3 = New!ShadowMap(1024, this, sp3, assetManager);
+        
+        nonPBRBackend = New!NonPBRBackend(assetManager);
+        nonPBRBackend.shadowMap1 = sm1;
+        nonPBRBackend.shadowMap2 = sm2;
+        nonPBRBackend.shadowMap3 = sm3;
 
         addPointLight(Vector3f(0, 5, 3), Color4f(0.0, 0.5, 1.0, 1.0));
         addPointLight(Vector3f(0, 5, -3), Color4f(0.0, 0.5, 1.0, 1.0));
@@ -86,23 +116,29 @@ class PhysicsScene: BaseScene3D
         bvh = meshBVH(aLevel.mesh);
         world.bvhRoot = bvh.root;
         
-        RigidBody bGround = world.addStaticBody(Vector3f(0.0f, -1.0f, 0.0f));
+        RigidBody bGround = world.addStaticBody(Vector3f(0.0f, -1.5f, 0.0f));
         gGround = New!GeomBox(Vector3f(40.0f, 1.0f, 40.0f));
         world.addShapeComponent(bGround, gGround, Vector3f(0.0f, 0.0f, 0.0f), 1.0f);
 
         auto level = createEntity3D();
         level.drawable = aLevel.mesh;
-        auto mTiles = New!GenericMaterial(assetManager);
+        auto mTiles = addMaterial();
         mTiles.diffuse = aTexTiles.texture;
-        mTiles.roughness = 0.9f;
+        mTiles.roughness = 0.1f;
         level.material = mTiles;
+        
+        auto plane = New!ShapePlane(40, 40, assetManager);
+        auto p = createEntity3D();
+        p.drawable = plane;
+        p.material = mTiles;
+        p.position.y = -0.5f;
 
         ShapeBox shapeBox = New!ShapeBox(1, 1, 1, assetManager);
         gBox = New!GeomBox(Vector3f(1.0f, 1.0f, 1.0f));
 
-        auto mat = New!GenericMaterial(assetManager);
+        auto mat = addMaterial();
         mat.diffuse = aTexCrate.texture;
-        mat.roughness = 0.2f;
+        mat.roughness = 0.8f;
 
         foreach(i; 0..5)
         {
@@ -116,10 +152,6 @@ class PhysicsScene: BaseScene3D
             world.addShapeComponent(bBox, gBox, Vector3f(0.0f, 0.0f, 0.0f), 10.0f);
         }
 
-        fpview = New!FirstPersonView(eventManager, Vector3f(10.0f, 1.8f, 0.0f), assetManager);
-        fpview.camera.turn = -90.0f;
-        view = fpview;
-
         gSphere = New!GeomEllipsoid(Vector3f(0.9f, 1.0f, 0.9f));
         gSensor = New!GeomBox(Vector3f(0.5f, 0.5f, 0.5f));
         character = New!CharacterController(world, fpview.camera.position, 80.0f, gSphere, assetManager);
@@ -132,6 +164,13 @@ class PhysicsScene: BaseScene3D
         textE.position = Vector3f(16.0f, eventManager.windowHeight - 30.0f, 0.0f);
 
         initializedPhysics = true;
+    }
+    
+    GenericMaterial addMaterial()
+    {
+        auto m = New!GenericMaterial(assetManager);
+        m.backend = nonPBRBackend;
+        return m;
     }
     
     override void onRelease()
@@ -187,10 +226,12 @@ class PhysicsScene: BaseScene3D
         Vector3f forward = fpview.camera.characterMatrix.forward;
         Vector3f right = fpview.camera.characterMatrix.right;
         float speed = 8.0f;
-        if (eventManager.keyPressed[KEY_W]) character.move(forward, -speed);
-        if (eventManager.keyPressed[KEY_S]) character.move(forward, speed);
-        if (eventManager.keyPressed[KEY_A]) character.move(right, -speed);
-        if (eventManager.keyPressed[KEY_D]) character.move(right, speed);
+        Vector3f dir = Vector3f(0, 0, 0);
+        if (eventManager.keyPressed[KEY_W]) dir += -forward;
+        if (eventManager.keyPressed[KEY_S]) dir += forward;
+        if (eventManager.keyPressed[KEY_A]) dir += -right;
+        if (eventManager.keyPressed[KEY_D]) dir += right;
+        character.move(dir.normalized, speed);
         if (eventManager.keyPressed[KEY_SPACE]) character.jump(2.0f);
         character.update();
     }
@@ -200,6 +241,15 @@ class PhysicsScene: BaseScene3D
         controlCharacter(dt);
         world.update(dt);
         fpview.camera.position = character.rbody.position;
+        eShadowArea.position = fpview.camera.position;
+    }
+    
+    override void onRender()
+    {
+        sm1.render(&rc3d);
+        sm2.render(&rc3d);
+        sm3.render(&rc3d);
+        super.onRender();
     }
 }
 

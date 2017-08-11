@@ -84,8 +84,7 @@ class RigidBody: Freeable
 
     float damping = 0.5f;
     float stopThreshold = 0.15f; //0.15f
-    float angStopThreshold = 0.3f;
-    float stopThresholdPV = 0.05f; //0.01f
+    float stopThresholdPV = 0.0f; //0.01f
 
     bool useOwnGravity = false;
     Vector3f gravity = Vector3f(0, 0, 0);
@@ -223,7 +222,7 @@ class RigidBody: Freeable
         }
 
         if (enableRotation)
-        if (angularVelocity.length > angStopThreshold /* || numContacts < 3 */) //stopThreshold
+        if (angularVelocity.length > 0.2f /* || numContacts < 3 */) //stopThreshold
         {
             orientation += 0.5f * Quaternionf(angularVelocity, 0.0f) * orientation * dt;
             orientation.normalize();
@@ -235,20 +234,20 @@ class RigidBody: Freeable
         if (!active || !dynamic)
             return;
 
-        //float d = clamp(1.0f - dt * damping, 0.0f, 1.0f);
+        float d = clamp(1.0f - dt * damping, 0.0f, 1.0f);
 
-        //pseudoLinearVelocity *= d;
-        //pseudoAngularVelocity *= d;
+        pseudoLinearVelocity *= d;
+        pseudoAngularVelocity *= d;
 
         if (pseudoLinearVelocity.length > stopThresholdPV)
         {
-            position += pseudoLinearVelocity * dt;
+            position += pseudoLinearVelocity;
         }
 
         if (enableRotation)
         if (pseudoAngularVelocity.length > stopThresholdPV)
         {
-            orientation += 0.5f * Quaternionf(pseudoAngularVelocity, 0.0f) * orientation * dt;
+            orientation += 0.5f * Quaternionf(pseudoAngularVelocity, 0.0f) * orientation;
             orientation.normalize();
         }
 
@@ -309,6 +308,15 @@ class RigidBody: Freeable
         linearVelocity += impulse * invMass;
         Vector3f angularImpulse = cross(point - worldCenterOfMass, impulse);
         angularVelocity += angularImpulse * invInertiaTensor;
+    }
+
+    void applyForceAtPos(Vector3f force, Vector3f pos)
+    {
+        if (!active || !dynamic)
+            return;
+
+        forceAccumulator += force;
+        torqueAccumulator += cross(pos - worldCenterOfMass, force);
     }
 
     void applyPseudoImpulse(Vector3f impulse, Vector3f point)

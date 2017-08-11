@@ -4,8 +4,6 @@ import std.stdio;
 import std.math;
 import dagon;
 
-import particles;
-
 class ParticlesScene: BaseScene3D
 {
     TextureAsset texAsset;

@@ -75,7 +75,7 @@ class ButtonBehaiour: Behaviour
             t = 1.0f;
     }
 
-    override void render()
+    override void render(RenderingContext* rc)
     {
         glColor4fv(color.arrayof.ptr);
         glBegin(GL_QUADS);
@@ -89,7 +89,7 @@ class ButtonBehaiour: Behaviour
         float labelX = width * 0.5f - label.width * 0.5f;
         float labelY = height * 0.5f - label.height * 0.5f;
         glTranslatef(labelX, labelY, 0);
-        label.render();
+        label.render(rc);
         glPopMatrix();
     }
 
