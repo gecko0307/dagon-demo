@@ -36,6 +36,8 @@ class ParticlesScene: BaseScene3D
 
         particles = createEntity3D();
         auto psys = New!ParticleSystem(particles, 400, texAsset.texture, freeview);
+        psys.drawTrails = true;
+        psys.drawForceFields = true;
 
         auto eVortex = createEntity3D();
         eVortex.position = Vector3f(3, 0, 0);
