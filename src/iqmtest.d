@@ -43,9 +43,11 @@ class IQMScene: BaseScene3D
         mat.shadeless = false;
         mrfixit.material = mat;
 
-        auto plane = New!ShapePlane(8, 8, assetManager);
+        auto plane = New!ShapePlane(8, 8, 4, assetManager);
         auto p = createEntity3D();
         p.drawable = plane;
+        
+        environment.backgroundColor = Color4f(0.5f, 0.5f, 0.5f, 1.0f);
     }
 
     override void onStart()

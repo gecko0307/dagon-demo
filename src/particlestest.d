@@ -12,7 +12,6 @@ class ParticlesScene: BaseScene3D
     this(SceneManager smngr)
     {
         super(smngr);
-        backgroundColor = Color4f(0, 0, 0, 1);
     }
 
     override void onAssetsRequest()
@@ -51,6 +50,8 @@ class ParticlesScene: BaseScene3D
         auto eColorChanger = createEntity3D();
         eColorChanger.position = Vector3f(3, 3, 0);
         auto ff3 = New!ColorChanger(eColorChanger, psys, Color4f(0.5f, 0.0, 1, 1), 2, 0);
+        
+        environment.backgroundColor = Color4f(0, 0, 0, 1);
     }
 
     override void onLogicsUpdate(double dt)

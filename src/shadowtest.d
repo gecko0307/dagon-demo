@@ -10,12 +10,10 @@ class ShadowScene: BaseScene3D
     OBJAsset obj;
     TextureAsset aTex;
 
-    NonPBRBackend nonPBRBackend;
+    BlinnPhongBackend bpb;
     Entity eShadowArea;
     ShadowArea sp;
     ShadowMap sm;
-
-    float r = -45.0f;
 
     this(SceneManager smngr)
     {
@@ -40,13 +38,12 @@ class ShadowScene: BaseScene3D
 
         eShadowArea = createEntity3D();
         eShadowArea.position = Vector3f(0, 5, 3);
-        eShadowArea.rotation = rotationQuaternion(Axis.x, degtorad(r));
-        sp = New!ShadowArea(eShadowArea, view, 10, 10, -20, 100);
+        sp = New!ShadowArea(eShadowArea, view, environment, 10, 10, -20, 100);
 
         sm = New!ShadowMap(1024, this, sp, assetManager);
         
-        nonPBRBackend = New!NonPBRBackend(assetManager);
-        nonPBRBackend.shadowMap1 = sm;
+        bpb = New!BlinnPhongBackend(assetManager);
+        bpb.shadowMap1 = sm;
 
         lightManager.addPointLight(Vector3f(-3, 2, 0), Color4f(1.0, 0.0, 0.0, 1.0));
         lightManager.addPointLight(Vector3f(3, 2, 0), Color4f(0.0, 1.0, 1.0, 1.0));
@@ -61,7 +58,7 @@ class ShadowScene: BaseScene3D
         e2.scaling = Vector3f(0.8f, 0.8f, 0.8f);
         e2.position = Vector3f(1.0f, 1.5f, 0.5f);
 
-        auto plane = New!ShapePlane(8, 8, assetManager);
+        auto plane = New!ShapePlane(8, 8, 4, assetManager);
         auto p = createEntity3D();
         p.drawable = plane;
         
@@ -80,12 +77,14 @@ class ShadowScene: BaseScene3D
         p.material = mat;
         e.material = mat2;
         e2.material = mat3;
+        
+        environment.backgroundColor = Color4f(0.5f, 0.5f, 0.5f, 1.0f);
     }
 
     GenericMaterial addMaterial()
     {
         auto m = New!GenericMaterial(assetManager);
-        m.backend = nonPBRBackend;
+        m.backend = bpb;
         return m;
     }
 

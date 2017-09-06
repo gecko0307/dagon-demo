@@ -1,4 +1,4 @@
-module physicstest;
+module fptest;
 
 import std.stdio;
 
@@ -33,11 +33,11 @@ BVHTree!Triangle meshBVH(Mesh mesh)
     return bvh;
 }
 
-class PhysicsScene: BaseScene3D
+class FirstPersonScene: BaseScene3D
 { 
     FirstPersonView fpview;
     
-    NonPBRBackend nonPBRBackend;
+    BlinnPhongBackend bpb;
     Entity eShadowArea;
     ShadowArea sp1;
     ShadowArea sp2;
@@ -95,17 +95,17 @@ class PhysicsScene: BaseScene3D
         eShadowArea.rotation = rotationQuaternion(Axis.x, degtorad(-45.0f));
         eShadowArea.visible = false;
         
-        sp1 = New!ShadowArea(eShadowArea, view, 10, 10, -10, 10);
-        sp2 = New!ShadowArea(eShadowArea, view, 30, 30, -30, 30);
-        sp3 = New!ShadowArea(eShadowArea, view, 100, 100, -100, 100);
+        sp1 = New!ShadowArea(eShadowArea, view, environment, 10, 10, -10, 10);
+        sp2 = New!ShadowArea(eShadowArea, view, environment, 30, 30, -30, 30);
+        sp3 = New!ShadowArea(eShadowArea, view, environment, 100, 100, -100, 100);
         sm1 = New!ShadowMap(1024, this, sp1, assetManager);
         sm2 = New!ShadowMap(1024, this, sp2, assetManager);
         sm3 = New!ShadowMap(1024, this, sp3, assetManager);
         
-        nonPBRBackend = New!NonPBRBackend(assetManager);
-        nonPBRBackend.shadowMap1 = sm1;
-        nonPBRBackend.shadowMap2 = sm2;
-        nonPBRBackend.shadowMap3 = sm3;
+        bpb = New!BlinnPhongBackend(assetManager);
+        bpb.shadowMap1 = sm1;
+        bpb.shadowMap2 = sm2;
+        bpb.shadowMap3 = sm3;
 
         addPointLight(Vector3f(0, 5, 3), Color4f(0.0, 0.5, 1.0, 1.0));
         addPointLight(Vector3f(0, 5, -3), Color4f(0.0, 0.5, 1.0, 1.0));
@@ -127,7 +127,7 @@ class PhysicsScene: BaseScene3D
         mTiles.roughness = 0.1f;
         level.material = mTiles;
         
-        auto plane = New!ShapePlane(40, 40, assetManager);
+        auto plane = New!ShapePlane(40, 40, 10, assetManager);
         auto p = createEntity3D();
         p.drawable = plane;
         p.material = mTiles;
@@ -162,6 +162,8 @@ class PhysicsScene: BaseScene3D
         auto textE = createEntity2D();
         textE.drawable = text;
         textE.position = Vector3f(16.0f, eventManager.windowHeight - 30.0f, 0.0f);
+        
+        environment.backgroundColor = Color4f(0.5f, 0.5f, 0.5f, 1.0f);
 
         initializedPhysics = true;
     }
@@ -169,7 +171,7 @@ class PhysicsScene: BaseScene3D
     GenericMaterial addMaterial()
     {
         auto m = New!GenericMaterial(assetManager);
-        m.backend = nonPBRBackend;
+        m.backend = bpb;
         return m;
     }
     

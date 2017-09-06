@@ -50,6 +50,8 @@ class OBJScene: BaseScene3D
         mat.roughness = 0.9f;
         mat.shadeless = false;
         e.material = mat;
+        
+        environment.backgroundColor = Color4f(0.5f, 0.5f, 0.5f, 1.0f);
     }
 
     override void onKeyDown(int key)

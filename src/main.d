@@ -4,7 +4,7 @@ import std.stdio;
 import dagon;
 import objtest;
 import iqmtest;
-import physicstest;
+import fptest;
 import particlestest;
 import shadowtest;
 
@@ -17,7 +17,6 @@ class MenuScene: BaseScene3D
     this(SceneManager smngr)
     {
         super(smngr);
-        backgroundColor = Color4f(0.2f, 0.2f, 0.3f, 1.0f);
     }
 
     override void onAssetsRequest()
@@ -62,6 +61,8 @@ class MenuScene: BaseScene3D
         buttonEx.position = Vector3f(eventManager.windowWidth * 0.5f - buttonWidth * 0.5f, menuY - (buttonHeight + 8) * 5, 0.0f);
         auto buttonExBeh = New!ButtonBehaiour(buttonWidth, buttonHeight, fontAsset.font, "Exit", buttonEx);
         buttonExBeh.onClick = &onClickButtonExit;
+        
+        environment.backgroundColor = Color4f(0.2f, 0.2f, 0.3f, 1.0f);
     }
 
     void onClickButton1()
@@ -116,8 +117,8 @@ class MyApplication: SceneApplication
         IQMScene iqmScene = New!IQMScene(sceneManager);
         sceneManager.addScene(iqmScene, "IQMScene");
 
-        PhysicsScene physicsScene = New!PhysicsScene(sceneManager);
-        sceneManager.addScene(physicsScene, "FirstPersonScene");
+        FirstPersonScene fpScene = New!FirstPersonScene(sceneManager);
+        sceneManager.addScene(fpScene, "FirstPersonScene");
 
         ParticlesScene parScene = New!ParticlesScene(sceneManager);
         sceneManager.addScene(parScene, "ParticlesScene");
