@@ -5,7 +5,9 @@ This is a test application that demonstrates features of [Dagon](https://github.
 The demo shows how to create several scenes and run them with a simple menu. Every scene shows some part of Dagon's functionality, or how it can be extended.
 
 [![Screenshot1](/screenshots/particles.jpg)](/screenshots/particles.jpg)
-[![Screenshot2](/screenshots/firstperson.jpg)](/screenshots/firstperson.jpg)
+[![Screenshot2](/screenshots/lights.jpg)](/screenshots/lights.jpg)
+[![Screenshot3](/screenshots/sky.jpg)](/screenshots/sky.jpg)
+[![Screenshot4](/screenshots/sunset.jpg)](/screenshots/sunset.jpg)
 
 Prerequisites
 -------------
