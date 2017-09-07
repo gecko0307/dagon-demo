@@ -227,6 +227,17 @@ class FirstPersonScene: BaseScene3D
         }
     }
     
+    override void onStart()
+    {
+        super.onStart();
+    }
+
+    override void onEnd()
+    {
+        super.onEnd();
+        fpview.active = false;
+    }
+    
     Color4f[9] lightColors = [
         Color4f(1, 1, 1, 1),
         Color4f(1, 0, 0, 1),
