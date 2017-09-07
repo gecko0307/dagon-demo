@@ -242,7 +242,7 @@ class FirstPersonScene: BaseScene3D
     override void onKeyDown(int key)
     {
         if (key == KEY_ESCAPE)
-            exitApplication();
+            sceneManager.goToScene("Menu");
     }
     
     override void onMouseButtonDown(int button)
