@@ -1,6 +1,7 @@
 module fptest;
 
 import std.stdio;
+import std.random;
 
 import dagon;
 
@@ -35,35 +36,48 @@ BVHTree!Triangle meshBVH(Mesh mesh)
 
 class FirstPersonScene: BaseScene3D
 { 
+    OBJAsset aBuilding;
+    TextureAsset aTexStoneDiffuse;
+    TextureAsset aTexStoneNormal;
+    TextureAsset aTexStoneHeight;
+    TextureAsset aTexStone2Diffuse;
+    TextureAsset aTexStone2Normal;
+    TextureAsset aTexStone2Height;
+    TextureAsset aTexCrateDiffuse;
+    
     FirstPersonView fpview;
     
-    BlinnPhongBackend bpb;
+    Framebuffer fb;
+    Framebuffer fbAA;
+    PostFilterFXAA fxaa;
+    PostFilterLensDistortion lens;
+        
     Entity eShadowArea;
     ShadowArea sp1;
     ShadowArea sp2;
     ShadowArea sp3;
     ShadowMap sm1;
     ShadowMap sm2;
-    ShadowMap sm3;
+    ShadowMap sm3;    
+    float r = -45.0f;
+    float ry = 0.0f;
+    
+    ClusteredLightManager clm;
+    BlinnPhongClusteredBackend bpcb;
+    SkyBackend skyb;
+    
+    FontAsset aFont;
+
+    Entity eSky;
 
     PhysicsWorld world;
-
     RigidBody bGround;
     Geometry gGround;
-
-    Geometry gBox;
-
+    Geometry gCrate;
     GeomEllipsoid gSphere;
     GeomBox gSensor;
     CharacterController character;
-
-    TextureAsset aTexCrate;
-    TextureAsset aTexTiles;
-    OBJAsset aLevel;
-    FontAsset aFont;
-
     BVHTree!Triangle bvh;
-
     bool initializedPhysics = false;
 
     this(SceneManager smngr)
@@ -74,12 +88,19 @@ class FirstPersonScene: BaseScene3D
     override void onAssetsRequest()
     {
         aFont = addFontAsset("data/font/DroidSans.ttf", 14);
-
-        aTexCrate = addTextureAsset("data/textures/crate.jpg");
-        aTexTiles = addTextureAsset("data/textures/tiles.jpg");
-
-        aLevel = New!OBJAsset(assetManager);
-        addAsset(aLevel, "data/obj/level.obj");
+        
+        aBuilding = New!OBJAsset(assetManager);
+        addAsset(aBuilding, "data/obj/level.obj");
+        
+        aTexStoneDiffuse = addTextureAsset("data/textures/stone-albedo.png");
+        aTexStoneNormal = addTextureAsset("data/textures/stone-normal.png");
+        aTexStoneHeight = addTextureAsset("data/textures/stone-height.png");
+        
+        aTexStone2Diffuse = addTextureAsset("data/textures/stone2-albedo.png");
+        aTexStone2Normal = addTextureAsset("data/textures/stone2-normal.png");
+        aTexStone2Height = addTextureAsset("data/textures/stone2-height.png");
+        
+        aTexCrateDiffuse = addTextureAsset("data/textures/crate.jpg");
     }
 
     override void onAllocate()
@@ -90,88 +111,104 @@ class FirstPersonScene: BaseScene3D
         fpview.camera.turn = -90.0f;
         view = fpview;
         
+        fb = New!Framebuffer(eventManager.windowWidth, eventManager.windowHeight, assetManager);
+        fbAA = New!Framebuffer(eventManager.windowWidth, eventManager.windowHeight, assetManager);
+        fxaa = New!PostFilterFXAA(fb, assetManager);
+        lens = New!PostFilterLensDistortion(fbAA, assetManager);
+        
+        environment.sunRotation = rotationQuaternion(Axis.x, degtorad(-45.0f));
+        
         eShadowArea = createEntity3D();
         eShadowArea.position = Vector3f(0, 5, 3);
-        eShadowArea.rotation = rotationQuaternion(Axis.x, degtorad(-45.0f));
         eShadowArea.visible = false;
-        
-        sp1 = New!ShadowArea(eShadowArea, view, environment, 10, 10, -10, 10);
-        sp2 = New!ShadowArea(eShadowArea, view, environment, 30, 30, -30, 30);
+        sp1 = New!ShadowArea(eShadowArea, view, environment, 10, 10, -100, 100);
+        sp2 = New!ShadowArea(eShadowArea, view, environment, 30, 30, -100, 100);
         sp3 = New!ShadowArea(eShadowArea, view, environment, 100, 100, -100, 100);
         sm1 = New!ShadowMap(1024, this, sp1, assetManager);
         sm2 = New!ShadowMap(1024, this, sp2, assetManager);
         sm3 = New!ShadowMap(1024, this, sp3, assetManager);
         
-        bpb = New!BlinnPhongBackend(assetManager);
-        bpb.shadowMap1 = sm1;
-        bpb.shadowMap2 = sm2;
-        bpb.shadowMap3 = sm3;
-
-        addPointLight(Vector3f(0, 5, 3), Color4f(0.0, 0.5, 1.0, 1.0));
-        addPointLight(Vector3f(0, 5, -3), Color4f(0.0, 0.5, 1.0, 1.0));
-        addPointLight(Vector3f(-6, 7, 0), Color4f(1.0, 0.5, 0.0, 1.0));
-
+        clm = New!ClusteredLightManager(view, assetManager);
+        bpcb = New!BlinnPhongClusteredBackend(clm, assetManager);
+        bpcb.shadowMap1 = sm1;
+        bpcb.shadowMap2 = sm2;
+        bpcb.shadowMap3 = sm3;
+        skyb = New!SkyBackend(assetManager);
+        
+        auto matSky = addMaterial(skyb);
+        
+        auto matStone = addMaterial(bpcb);
+        matStone.diffuse = aTexStoneDiffuse.texture;
+        matStone.normal = aTexStoneNormal.texture;
+        matStone.height = aTexStoneHeight.texture;
+        matStone.roughness = 0.2f;
+        
+        auto matCrate = addMaterial(bpcb);
+        matCrate.diffuse = aTexCrateDiffuse.texture;
+        matCrate.roughness = 0.9f;
+        
+        eSky = createEntity3D();
+        eSky.material = matSky;
+        eSky.drawable = New!ShapeSphere(100.0f, assetManager);
+        eSky.scaling = Vector3f(-1.0f, -1.0f, -1.0f);
+        
+        auto matGround = addMaterial(bpcb);
+        matGround.diffuse = aTexStone2Diffuse.texture;
+        matGround.normal = aTexStone2Normal.texture;
+        matGround.height = aTexStone2Height.texture;
+        matGround.roughness = 0.8f;
+        
         world = New!PhysicsWorld();
 
-        bvh = meshBVH(aLevel.mesh);
+        bvh = meshBVH(aBuilding.mesh);
         world.bvhRoot = bvh.root;
         
-        RigidBody bGround = world.addStaticBody(Vector3f(0.0f, -1.5f, 0.0f));
-        gGround = New!GeomBox(Vector3f(40.0f, 1.0f, 40.0f));
+        RigidBody bGround = world.addStaticBody(Vector3f(0.0f, 0.0f, 0.0f));
+        gGround = New!GeomBox(Vector3f(100.0f, 0.8f, 100.0f));
         world.addShapeComponent(bGround, gGround, Vector3f(0.0f, 0.0f, 0.0f), 1.0f);
-
-        auto level = createEntity3D();
-        level.drawable = aLevel.mesh;
-        auto mTiles = addMaterial();
-        mTiles.diffuse = aTexTiles.texture;
-        mTiles.roughness = 0.1f;
-        level.material = mTiles;
+        auto eGround = createEntity3D();
+        eGround.drawable = New!ShapePlane(200, 200, 100, assetManager);
+        eGround.material = matGround;
+        eGround.position.y = 0.8f;
         
-        auto plane = New!ShapePlane(40, 40, 10, assetManager);
-        auto p = createEntity3D();
-        p.drawable = plane;
-        p.material = mTiles;
-        p.position.y = -0.5f;
-
-        ShapeBox shapeBox = New!ShapeBox(1, 1, 1, assetManager);
-        gBox = New!GeomBox(Vector3f(1.0f, 1.0f, 1.0f));
-
-        auto mat = addMaterial();
-        mat.diffuse = aTexCrate.texture;
-        mat.roughness = 0.8f;
+        ShapeBox sCrate = New!ShapeBox(1, 1, 1, assetManager);
+        gCrate = New!GeomBox(Vector3f(1.0f, 1.0f, 1.0f));
 
         foreach(i; 0..5)
         {
-            auto boxE = createEntity3D();
-            boxE.drawable = shapeBox;
-            boxE.material = mat;
-            boxE.position = Vector3f(i * 0.1f, 3.0f + 3.0f * cast(float)i, 0);
-            auto bBox = world.addDynamicBody(Vector3f(0, 0, 0), 0.0f);
-            RigidBodyController rbc = New!RigidBodyController(boxE, bBox);
-            boxE.controller = rbc;
-            world.addShapeComponent(bBox, gBox, Vector3f(0.0f, 0.0f, 0.0f), 10.0f);
+            auto eCrate = createEntity3D();
+            eCrate.drawable = sCrate;
+            eCrate.material = matCrate;
+            eCrate.position = Vector3f(i * 0.1f, 3.0f + 3.0f * cast(float)i, -5.0f);
+            auto bCrate = world.addDynamicBody(Vector3f(0, 0, 0), 0.0f);
+            RigidBodyController rbc = New!RigidBodyController(eCrate, bCrate);
+            eCrate.controller = rbc;
+            world.addShapeComponent(bCrate, gCrate, Vector3f(0.0f, 0.0f, 0.0f), 10.0f);
         }
-
+        
         gSphere = New!GeomEllipsoid(Vector3f(0.9f, 1.0f, 0.9f));
         gSensor = New!GeomBox(Vector3f(0.5f, 0.5f, 0.5f));
         character = New!CharacterController(world, fpview.camera.position, 80.0f, gSphere, assetManager);
         character.createSensor(gSensor, Vector3f(0.0f, -0.75f, 0.0f));
 
-        auto text = New!TextLine(aFont.font, "Press <LMB> to look around, WASD to move, spacebar to jump", assetManager);
-        text.color = Color4f(1.0f, 1.0f, 1.0f, 1.0f);
-        auto textE = createEntity2D();
-        textE.drawable = text;
-        textE.position = Vector3f(16.0f, eventManager.windowHeight - 30.0f, 0.0f);
+        Entity eBuilding = createEntity3D();
+        eBuilding.material = matStone;
+        eBuilding.drawable = aBuilding.mesh;
         
-        environment.backgroundColor = Color4f(0.5f, 0.5f, 0.5f, 1.0f);
-
+        auto text = New!TextLine(aFont.font, "Press <LMB> to switch mouse look, WASD to move, spacebar to jump, <RMB> to create a light, arrow keys to rotate the sun", assetManager);
+        text.color = Color4f(1.0f, 1.0f, 1.0f, 1.0f);
+        auto eText = createEntity2D();
+        eText.drawable = text;
+        eText.position = Vector3f(16.0f, eventManager.windowHeight - 30.0f, 0.0f);
+        
         initializedPhysics = true;
     }
     
-    GenericMaterial addMaterial()
+    GenericMaterial addMaterial(GenericMaterialBackend b = null)
     {
         auto m = New!GenericMaterial(assetManager);
-        m.backend = bpb;
+        if (b)
+            m.backend = b;
         return m;
     }
     
@@ -182,51 +219,53 @@ class FirstPersonScene: BaseScene3D
         {
             Delete(world);
             Delete(gGround);
-            Delete(gBox);
+            Delete(gCrate);
             Delete(gSphere);
             Delete(gSensor);
             bvh.free();
             initializedPhysics = false;
         }
     }
-
-    override void onStart()
-    {
-        super.onStart();
-    }
-
-    override void onEnd()
-    {
-        super.onEnd();
-    }
+    
+    Color4f[9] lightColors = [
+        Color4f(1, 1, 1, 1),
+        Color4f(1, 0, 0, 1),
+        Color4f(1, 0.5, 0, 1),
+        Color4f(1, 1, 0, 1),
+        Color4f(0, 1, 0, 1),
+        Color4f(0, 1, 0.5, 1),
+        Color4f(0, 1, 1, 1),
+        Color4f(0, 0.5, 1, 1),
+        Color4f(0, 0, 1, 1)
+    ];
 
     override void onKeyDown(int key)
     {
         if (key == KEY_ESCAPE)
-            sceneManager.goToScene("Menu");
+            exitApplication();
     }
     
     override void onMouseButtonDown(int button)
     {
         if (button == MB_LEFT)
         {
-            fpview.active = true;
+            if (fpview.active)
+                fpview.active = false;
+            else
+                fpview.active = true;
+        }
+
+        if (button == MB_RIGHT)
+        {
+            clm.addLight(fpview.camera.position, lightColors[uniform(0, 9)] * 2.0f, uniform(2.0f, 3.0f));
         }
     }
     
-    override void onMouseButtonUp(int button)
-    {
-        if (button == MB_LEFT)
-        {
-            fpview.active = false;
-        }
-    }
-
     void controlCharacter(double dt)
     {
         character.rotation.y = fpview.camera.turn;
         Vector3f forward = fpview.camera.characterMatrix.forward;
-        Vector3f right = fpview.camera.characterMatrix.right;
+        Vector3f right = fpview.camera.characterMatrix.right; 
         float speed = 8.0f;
         Vector3f dir = Vector3f(0, 0, 0);
         if (eventManager.keyPressed[KEY_W]) dir += -forward;
@@ -237,22 +276,49 @@ class FirstPersonScene: BaseScene3D
         if (eventManager.keyPressed[KEY_SPACE]) character.jump(2.0f);
         character.update();
     }
-
+    
     override void onLogicsUpdate(double dt)
-    {
+    {  
         controlCharacter(dt);
         world.update(dt);
         fpview.camera.position = character.rbody.position;
         eShadowArea.position = fpview.camera.position;
+        
+        if (eventManager.keyPressed[KEY_DOWN]) r += 30.0f * dt;
+        if (eventManager.keyPressed[KEY_UP]) r -= 30.0f * dt;
+        if (eventManager.keyPressed[KEY_LEFT]) ry += 30.0f * dt;
+        if (eventManager.keyPressed[KEY_RIGHT]) ry -= 30.0f * dt;
+
+        environment.sunRotation = rotationQuaternion(Axis.y, degtorad(ry)) * rotationQuaternion(Axis.x, degtorad(r));
+        environment.update(dt);
+        
+        eSky.position = fpview.camera.position;
     }
     
     override void onRender()
     {
+        eSky.visible = false;
         sm1.render(&rc3d);
         sm2.render(&rc3d);
         sm3.render(&rc3d);
-        super.onRender();
+        eSky.visible = true;
+
+        fb.bind();        
+        prepareRender();
+        rc3d.apply();
+        clm.update();
+        renderEntities3D(&rc3d);
+        fb.unbind();
+        
+        fbAA.bind();
+        prepareRender();
+        rc2d.apply();
+        fxaa.render();
+        fbAA.unbind();
+        
+        prepareRender();
+        rc2d.apply();
+        lens.render();
+        renderEntities2D(&rc2d);
     }
 }
-
-
