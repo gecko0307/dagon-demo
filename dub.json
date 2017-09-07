@@ -24,7 +24,9 @@
             "name": "demo",
             "targetType": "executable",
             "sourcePaths": ["src"],
-            "mainSourceFile": "src/main.d"
+            "mainSourceFile": "src/main.d",
+            "lflags-windows-x86-dmd": ["/SUBSYSTEM:WINDOWS:5.01"],
+            "lflags-windows-x86_64-dmd": ["/SUBSYSTEM:WINDOWS:5.02"]
         }
     ]
 }
