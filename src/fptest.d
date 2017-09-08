@@ -111,6 +111,7 @@ class FirstPersonScene: BaseScene3D
         fxaa = New!PostFilterFXAA(fb, assetManager);
         lens = New!PostFilterLensDistortion(fbAA, assetManager);
         
+        environment.useSkyColors = true;
         environment.sunRotation = rotationQuaternion(Axis.x, degtorad(-45.0f));
 
         shadowMap = New!CascadedShadowMap(1024, this, assetManager);

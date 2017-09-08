@@ -30,6 +30,8 @@ class ShadowScene: BaseScene3D
         auto freeview = New!Freeview(eventManager, assetManager);
         freeview.setZoom(6.0f);
         view = freeview;
+        
+        environment.useSkyColors = true;
 
         shadowMap = New!CascadedShadowMap(1024, this, assetManager);
         
