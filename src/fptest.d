@@ -53,12 +53,7 @@ class FirstPersonScene: BaseScene3D
     PostFilterLensDistortion lens;
         
     Entity eShadowArea;
-    ShadowArea sp1;
-    ShadowArea sp2;
-    ShadowArea sp3;
-    ShadowMap sm1;
-    ShadowMap sm2;
-    ShadowMap sm3;    
+    CascadedShadowMap shadowMap; 
     float r = -45.0f;
     float ry = 0.0f;
     
@@ -117,22 +112,12 @@ class FirstPersonScene: BaseScene3D
         lens = New!PostFilterLensDistortion(fbAA, assetManager);
         
         environment.sunRotation = rotationQuaternion(Axis.x, degtorad(-45.0f));
-        
-        eShadowArea = createEntity3D();
-        eShadowArea.position = Vector3f(0, 5, 3);
-        eShadowArea.visible = false;
-        sp1 = New!ShadowArea(eShadowArea, view, environment, 10, 10, -100, 100);
-        sp2 = New!ShadowArea(eShadowArea, view, environment, 30, 30, -100, 100);
-        sp3 = New!ShadowArea(eShadowArea, view, environment, 100, 100, -100, 100);
-        sm1 = New!ShadowMap(1024, this, sp1, assetManager);
-        sm2 = New!ShadowMap(1024, this, sp2, assetManager);
-        sm3 = New!ShadowMap(1024, this, sp3, assetManager);
+
+        shadowMap = New!CascadedShadowMap(1024, this, assetManager);
         
         clm = New!ClusteredLightManager(view, assetManager);
         bpcb = New!BlinnPhongClusteredBackend(clm, assetManager);
-        bpcb.shadowMap1 = sm1;
-        bpcb.shadowMap2 = sm2;
-        bpcb.shadowMap3 = sm3;
+        bpcb.shadowMap = shadowMap;
         skyb = New!SkyBackend(assetManager);
         
         auto matSky = addMaterial(skyb);
@@ -293,7 +278,6 @@ class FirstPersonScene: BaseScene3D
         controlCharacter(dt);
         world.update(dt);
         fpview.camera.position = character.rbody.position;
-        eShadowArea.position = fpview.camera.position;
         
         if (eventManager.keyPressed[KEY_DOWN]) r += 30.0f * dt;
         if (eventManager.keyPressed[KEY_UP]) r -= 30.0f * dt;
@@ -304,20 +288,21 @@ class FirstPersonScene: BaseScene3D
         environment.update(dt);
         
         eSky.position = fpview.camera.position;
+        
+        shadowMap.position = fpview.camera.position;
+        shadowMap.update(dt);
+        clm.update(dt);
     }
     
     override void onRender()
     {
         eSky.visible = false;
-        sm1.render(&rc3d);
-        sm2.render(&rc3d);
-        sm3.render(&rc3d);
+        shadowMap.render(&rc3d);
         eSky.visible = true;
 
         fb.bind();        
         prepareRender();
         rc3d.apply();
-        clm.update();
         renderEntities3D(&rc3d);
         fb.unbind();
         
