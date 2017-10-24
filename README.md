@@ -1,6 +1,6 @@
 Dagon Demo Application
 ======================
-This is a test application that demonstrates features of [Dagon](https://github.com/gecko0307/dagon) game framework. You can use it as a basis to start your own project.
+This is a test application that demonstrates features of [Dagon](https://github.com/gecko0307/dagon) game framework. It currently uses 0.4.0 (OpenGL 2.1) version of the engine. 
 
 The demo shows how to create several scenes and run them with a simple menu. Every scene shows some part of Dagon's functionality, or how it can be extended.
 
