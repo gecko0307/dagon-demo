@@ -1,13 +1,8 @@
 Dagon Demo Application
 ======================
-This is a test application that demonstrates features of [Dagon](https://github.com/gecko0307/dagon) game framework. It currently uses 0.4.0 (OpenGL 2.1) version of the engine. 
+This is a test application that demonstrates features of [Dagon](https://github.com/gecko0307/dagon) game framework. 
 
-The demo shows how to create several scenes and run them with a simple menu. Every scene shows some part of Dagon's functionality, or how it can be extended.
-
-[![Screenshot1](/screenshots/particles.jpg)](/screenshots/particles.jpg)
-[![Screenshot2](/screenshots/lights.jpg)](/screenshots/lights.jpg)
-[![Screenshot3](/screenshots/sky.jpg)](/screenshots/sky.jpg)
-[![Screenshot4](/screenshots/sunset.jpg)](/screenshots/sunset.jpg)
+The demo shows how to load static and animated materials, assign materials and textures, create lights and a particle system, control the character, integrate a physics engine ([dmech](https://github.com/gecko0307/dmech) is this case), render 2D text and much more. 
 
 Prerequisites
 -------------
@@ -17,7 +12,7 @@ Binary releases of the demo already include all necessary libraries.
 
 Controls
 --------
-In most of the test scenes you can rotate freeview camera with left mouse button and zoom with mouse wheel. In first person scene holding LMB enables mouse look, WASD keys are used to move and strafe, spacebar - to jump. Press Escape to return to main menu. 
+LMB enables mouse look, WASD keys are used to move and strafe, spacebar - to jump.
 
 License
 -------
