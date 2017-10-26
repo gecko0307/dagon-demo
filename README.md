@@ -2,7 +2,7 @@ Dagon Demo Application
 ======================
 This is a test application that demonstrates features of [Dagon](https://github.com/gecko0307/dagon) game framework. 
 
-The demo shows how to load static and animated meshes, assign materials and textures, create lights and a particle system, control the character, integrate a physics engine ([dmech](https://github.com/gecko0307/dmech) is this case), render 2D text and much more. 
+The demo shows how to load static and animated meshes, assign materials and textures, create lights and a particle system, control the character, integrate a physics engine ([dmech](https://github.com/gecko0307/dmech) is this case), apply post-processing, render 2D text and much more. 
 
 [![Screenshot1](/screenshots/main-thumb.jpg)](/screenshots/main.jpg)
 
@@ -14,9 +14,13 @@ Binary releases of the demo already include all necessary libraries.
 
 Building
 --------
-Just use Dub: `dub build`. 
+Just use Dub: 
 
-Under Windows you can hide console using `win32` configuration: `dub build --config=win32`.
+`dub build`
+
+Under Windows you can hide console using `win32` configuration: 
+
+`dub build --config=win32`
 
 Controls
 --------
