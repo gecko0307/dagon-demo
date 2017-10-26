@@ -12,6 +12,12 @@ To run the demo, a number of libraries should be installed, namely SDL2 and Free
 
 Binary releases of the demo already include all necessary libraries.
 
+Building
+--------
+Just use Dub: `dub build`. 
+
+Under Windows you can hide console using `win32` configuration: `dub build --config=win32`.
+
 Controls
 --------
 LMB enables mouse look, WASD keys are used to move and strafe, spacebar - to jump.
