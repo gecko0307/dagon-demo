@@ -2,7 +2,9 @@ Dagon Demo Application
 ======================
 This is a test application that demonstrates features of [Dagon](https://github.com/gecko0307/dagon) game framework. 
 
-The demo shows how to load static and animated materials, assign materials and textures, create lights and a particle system, control the character, integrate a physics engine ([dmech](https://github.com/gecko0307/dmech) is this case), render 2D text and much more. 
+The demo shows how to load static and animated meshes, assign materials and textures, create lights and a particle system, control the character, integrate a physics engine ([dmech](https://github.com/gecko0307/dmech) is this case), render 2D text and much more. 
+
+[![Screenshot1](/screenshots/main-thumb.jpg)](/screenshots/main.jpg)
 
 Prerequisites
 -------------
