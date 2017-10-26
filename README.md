@@ -2,7 +2,7 @@ Dagon Demo Application
 ======================
 This is a test application that demonstrates features of [Dagon](https://github.com/gecko0307/dagon) game framework. 
 
-The demo shows how to load static and animated meshes, assign materials and textures, create lights and a particle system, control the character, integrate a physics engine ([dmech](https://github.com/gecko0307/dmech) is this case), apply post-processing, render 2D text and much more. 
+The demo shows how to load static and animated meshes, assign materials and textures, create lights and a particle system, integrate a physics engine ([dmech](https://github.com/gecko0307/dmech) is this case), apply post-processing, render 2D text and much more. It includes a game-ready character controller that can jump, walk up the stairs and interact with ordinary rigid bodies. The demo can be used as a base for a first person shooter.
 
 [![Screenshot1](/screenshots/main-thumb.jpg)](/screenshots/main.jpg)
 
