@@ -10,7 +10,7 @@ Prerequisites
 -------------
 To run the demo, a number of libraries should be installed, namely SDL2 and Freetype. If you don't have them installed system-wide (which is a common case on Windows), you can use the libraries provided [here](https://github.com/gecko0307/dagon/releases/tag/v0.0.2). Currently we provide libraries only for Windows and Linux. Download an archive for your system and place the `lib` folder in your project's working directory. Dagon will automatically detect and try to load them. If there are no local libraries in `lib` directory, it will use system ones.
 
-Binary releases of the demo already include all necessary libraries.
+Binary releases for Windows already include all necessary libraries.
 
 Building
 --------
