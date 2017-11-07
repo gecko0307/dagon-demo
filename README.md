@@ -26,6 +26,7 @@ Under Windows you can hide console using `win32` configuration:
 Controls
 --------
 LMB enables mouse look, WASD keys are used to move and strafe, spacebar - to jump.
+Press enter to get in the car, RMB to create a light ball.
 
 License
 -------
