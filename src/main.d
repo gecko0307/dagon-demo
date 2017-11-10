@@ -41,6 +41,7 @@ import dmech.raycast;
 
 import rigidbodycontroller;
 import character;
+import vehicle;
 
 BVHTree!Triangle meshBVH(Mesh[] meshes)
 {
@@ -64,368 +65,9 @@ BVHTree!Triangle meshBVH(Mesh[] meshes)
     return bvh;
 }
 
-class Wheel: Owner
-{
-    Vector3f suspPosition;
-    Vector3f forcePosition;
-    Vector3f position;
-    float radius;
-    float suspMaxLength;
-    float suspStiffness; 
-    float suspDamping;
-    float suspCompression;
-    float suspLength;
-    float suspLengthPrev;
-    float steeringAngle;
-    float torque;
-    float roll;
-    float dirCoef;
-    bool powered;
-    bool steered;
-    float maxSteeringAngle;
-    float rollSpeed;
-    bool front;
-    bool isDrifting;
-
-    Matrix4x4f transformation;
-
-    this(Vector3f pos, bool powered, bool steered, bool front, Owner o)
-    {
-        super(o);
-        suspPosition = pos;
-        forcePosition = Vector3f(0.0f, 0.0f, 0.0f);
-        radius = 0.6f;
-        suspStiffness = 80000.0f;
-        suspDamping = 10000.0f;
-        suspCompression = 0.0f;
-        suspLength = 0.0f;
-        suspLengthPrev = 0.0f;
-        suspMaxLength = 0.8f; //0.8f;
-        steeringAngle = 0.0f;
-        torque = 0.0f;
-        position = suspPosition - Vector3f(0.0f, suspMaxLength, 0.0f);
-        transformation = Matrix4x4f.identity;
-        roll = 0.0f;
-        dirCoef = 1.0f;
-        this.powered = powered;
-        this.steered = steered;
-        maxSteeringAngle = 45.0f;
-        rollSpeed = 0.0f;
-        this.front = front;
-        isDrifting = false;
-    }
-}
-
-class VehicleController: EntityController
-{
-    PhysicsWorld world;
-    RigidBody rbody;
-    Wheel[4] wheels; // TODO: use dynamic array and let the user create wheels
-    float torqueAcc;
-    bool brake = false;
-    float maxForwardTorque = 30000.0f; //30000.0f;
-    float maxBackwardTorque = 20000.0f;
-
-    this(Entity e, RigidBody b, PhysicsWorld w)
-    {
-        super(e);
-
-        world = w;
-
-        rbody = b;
-        b.position = e.position;
-        b.orientation = e.rotation;
-
-        wheels[0] = New!Wheel(Vector3f(-1.2f, 1,  2.2f), false, true, true, this);
-        wheels[0].dirCoef = -1.0f;
-        wheels[1] = New!Wheel(Vector3f( 1.2f, 1,  2.2f), false, true, true, this);
-        wheels[2] = New!Wheel(Vector3f(-1.2f, 1, -2.0f), true, false, false, this);
-        wheels[2].dirCoef = -1.0f;
-        wheels[3] = New!Wheel(Vector3f( 1.2f, 1, -2.0f), true, false, false, this);
-
-        torqueAcc = 0.0f;
-    }
-
-    void accelerateForward(float t)
-    {
-        if (torqueAcc < 0.0f)
-            torqueAcc = 0.0f;
-        else
-            torqueAcc += t;
-
-        if (isMovingBackward)
-            brake = true;
-        else
-            brake = false;
-
-        if (torqueAcc > maxForwardTorque)
-            torqueAcc = maxForwardTorque;
-
-        uint numPoweredWheels = 0;
-        foreach(i, w; wheels)
-        if (w.powered)
-            numPoweredWheels++;
- 
-        foreach(i, w; wheels)
-        if (w.powered)
-            w.torque = torqueAcc / cast(float)numPoweredWheels;
-    }
-
-    void accelerateBackward(float t)
-    {
-        if (torqueAcc > 0.0f)
-            torqueAcc = 0.0f;
-        else
-            torqueAcc -= t;
-
-        if (isMovingForward)
-            brake = true;
-        else
-            brake = false;
-
-        if (torqueAcc < -maxBackwardTorque)
-            torqueAcc = -maxBackwardTorque;
-
-        uint numPoweredWheels = 0;
-        foreach(i, w; wheels)
-        if (w.powered)
-            numPoweredWheels++;
- 
-        foreach(i, w; wheels)
-        if (w.powered)
-            w.torque = torqueAcc / cast(float)numPoweredWheels;
-    }
-
-    void steer(float angle)
-    {
-        foreach(i, w; wheels)
-        if (w.steered)
-        {
-            if (w.front)
-                w.steeringAngle += angle;
-            else
-                w.steeringAngle += -angle;
-
-            if (w.steeringAngle > w.maxSteeringAngle)
-                w.steeringAngle = w.maxSteeringAngle;
-            else if (w.steeringAngle < -w.maxSteeringAngle)
-                w.steeringAngle = -w.maxSteeringAngle;
-        }
-    }
-
-    void resetSteering()
-    {
-        foreach(i, w; wheels)
-        if (w.steered)
-        {
-            if (w.steeringAngle > 0.0f)
-                w.steeringAngle -= 2.0f;
-            if (w.steeringAngle < 0.0f)
-                w.steeringAngle += 2.0f;
-        }
-    }
-
-    void downRaycast(Vector3f pos, Vector3f down, out float height, out Vector3f n)
-    {
-        CastResult castResult;
-        if (world.raycast(pos, down, 10, castResult, true, true))
-        {
-            height = castResult.point.y;
-            n = castResult.normal;
-        }
-        else
-        {
-            height = 0;
-            n = Vector3f(0.0f, 1.0f, 0.0f);
-        }
-    }
-
-    void updateWheel(Wheel w, double dt)
-    {
-        w.transformation = rbody.transformation * 
-            translationMatrix(w.position) * rotationMatrix(Axis.y, degtorad(w.steeringAngle));
-
-        Vector3f wheelPosW = rbody.position + rbody.orientation.rotate(w.suspPosition);
-        float groundHeight = 0.0f;
-        Vector3f groundNormal = Vector3f(0, 1, 0);
-        Vector3f down = -w.transformation.up;
-        downRaycast(wheelPosW, down, groundHeight, groundNormal);
-        w.forcePosition = Vector3f(wheelPosW.x, groundHeight, wheelPosW.z);
-
-        float suspToGround = wheelPosW.y - groundHeight;
-
-        bool inAir;
-
-        float invSteepness = clamp(dot(groundNormal, Vector3f(0, 1, 0)), 0.0f, 1.0f);
-
-        if (suspToGround > (w.suspMaxLength + w.radius)) // wheel is in air
-        {
-            w.suspCompression = 0.0f;
-            w.suspLengthPrev = w.suspMaxLength;
-            w.suspLength = w.suspMaxLength;
-            w.position = w.suspPosition + Vector3f(0.0f, -w.suspMaxLength, 0.0f);
-
-            inAir = true;
-
-            w.isDrifting = false;
-        }
-        else // suspension is compressed
-        {
-            w.suspLengthPrev = w.suspLength;
-            w.suspLength = suspToGround - w.radius;
-            w.suspCompression = w.suspMaxLength - w.suspLength;
-            w.position = w.suspPosition + Vector3f(0.0f, -w.suspLength, 0.0f);
-
-            float springForce = w.suspCompression * w.suspStiffness;
-            float dampingForce = ((w.suspLengthPrev - w.suspLength) * w.suspDamping) / dt;
-
-            float normalForce = springForce + dampingForce;
-
-            Vector3f upDir = w.transformation.up;
-            Vector3f springForceVec = upDir * springForce;
-            Vector3f dampingForceVec = upDir * dampingForce;
-
-            rbody.applyForceAtPos(springForceVec, w.forcePosition);
-            rbody.applyForceAtPos(dampingForceVec, w.forcePosition);
-
-            Vector3f forwardDir = w.transformation.forward;
-            Vector3f sideDir = w.transformation.right * w.dirCoef;
-
-            float forwardForce = w.torque / w.radius;
-
-            Vector3f radiusVector = w.forcePosition - rbody.position;
-            Vector3f pointVelocity = rbody.linearVelocity + cross(rbody.angularVelocity, radiusVector);
-            float sideSpeed = dot(pointVelocity, sideDir);
-            float sideFrictionForce = -sideSpeed * rbody.mass * 0.9f;
-
-            rbody.applyForceAtPos(forwardDir * forwardForce, w.forcePosition);
-            rbody.applyForceAtPos(sideDir * sideFrictionForce, w.forcePosition);
-
-            inAir = false;
-
-            w.isDrifting = abs(sideSpeed) > 2.0f;
-        }
-
-        if (!brake)
-        {
-            if (!inAir)
-            {
-                float forwardSpeed = dot(rbody.linearVelocity, rbody.transformation.forward);
-                w.rollSpeed = forwardSpeed / w.radius;
-            }
-            else
-            {
-                if (w.powered && w.torque != 0.0f)
-                    w.rollSpeed = w.torque * dt;
-            
-                w.rollSpeed *= 0.99f;
-            }
-
-            w.roll += radtodeg(w.rollSpeed) * dt;
-            if (w.roll > 360.0f) w.roll -= 360.0f;
-        }
-        else if (!inAir)
-            w.isDrifting = true;
-
-        w.torque = 0.0f;
-    }
-
-    bool isMovingForward()
-    {
-        float forwardSpeed = dot(rbody.linearVelocity, rbody.transformation.forward);
-        return forwardSpeed > 0.0f;
-    }
-
-    bool isMovingBackward()
-    {
-        float forwardSpeed = dot(rbody.linearVelocity, rbody.transformation.forward);
-        return forwardSpeed < 0.0f;
-    }
-
-    bool isStopped()
-    {
-        float forwardSpeed = dot(rbody.linearVelocity, rbody.transformation.forward);
-        return abs(forwardSpeed) <= EPSILON;
-    }
-
-    Vector3f position()
-    {
-        return rbody.position;
-    }
-
-    Quaternionf rotation()
-    {
-        return rbody.orientation;
-    }
-
-    void fixedStepUpdate(double dt)
-    {
-        foreach(i, w; wheels)
-            updateWheel(w, dt);
-        
-        if (torqueAcc > 0.0f)
-            torqueAcc -= 0.5f;
-        else if (torqueAcc < 0.0f)
-            torqueAcc += 0.5f;
-    }
-
-    override void update(double dt)
-    {
-        entity.position = rbody.position;
-        entity.rotation = rbody.orientation; 
-        entity.transformation = rbody.transformation;
-        entity.invTransformation = entity.transformation.inverse;
-    }
-}
-
-class CarView: EventListener, View
-{
-    VehicleController vehicle;
-    Vector3f position;
-    Vector3f offset;
-    Matrix4x4f _trans;
-    Matrix4x4f _invTrans;
-
-    this(EventManager emngr, VehicleController vehicle, Owner owner)
-    {
-        super(emngr, owner);
-
-        this.vehicle = vehicle;
-        offset = Vector3f(0.0f, 0.0f, -7.0f);
-        position = vehicle.position + offset;
-    }
-
-    void update(double dt)
-    {
-        processEvents();
-
-        Vector3f tp = vehicle.position + vehicle.rotation.rotate(offset) + Vector3f(0, 3, 0);
-        Vector3f d = tp - position;
-        position += (d * 10.0f) * dt;
-
-        _trans = lookAtMatrix(position, vehicle.position + Vector3f(0, 2, 0), Vector3f(0, 1, 0));
-        _invTrans = _trans.inverse;
-    }
-
-    Matrix4x4f viewMatrix()
-    {
-        return _trans;
-    }
-    
-    Matrix4x4f invViewMatrix()
-    {
-        return _invTrans;
-    }
-    
-    Vector3f cameraPosition()
-    {
-        return position;
-    }
-}
-
 class TestScene: BaseScene3D
 {
-    FontAsset aFont;
+    FontAsset aFontDroidSans14;
 
     TextureAsset aTexImrodDiffuse;
     TextureAsset aTexImrodNormal;
@@ -457,7 +99,8 @@ class TestScene: BaseScene3D
     
     Entity eMrfixit;
     Actor actor;
-
+    
+    PBRClusteredBackend pbrMatBackend;
     ShadelessBackend shadelessMatBackend;
     SkyBackend skyMatBackend;
     float sunPitch = -45.0f;
@@ -492,7 +135,14 @@ class TestScene: BaseScene3D
     
     Entity eParticles;
     
-    TextLine dynamicText;
+    string helpTextFirstPerson = "Press <LMB> to switch mouse look, WASD to move, spacebar to jump, <RMB> to create a light, arrow keys to rotate the sun";
+    string helpTextVehicle = "Press W/S to accelerate forward/backward, A/D to steer, Enter to get out of the car";
+    
+    TextLine helpText;
+    TextLine infoText;
+    TextLine messageText;
+    
+    Entity eMessage;
   
     Color4f[9] lightColors = [
         Color4f(1, 1, 1, 1),
@@ -506,6 +156,9 @@ class TestScene: BaseScene3D
         Color4f(0, 0, 1, 1)
     ];
 
+    bool joystickButtonAPressed;
+    bool joystickButtonBPressed;
+
     this(SceneManager smngr)
     {
         super(smngr);
@@ -513,7 +166,7 @@ class TestScene: BaseScene3D
 
     override void onAssetsRequest()
     {
-        aFont = addFontAsset("data/font/DroidSans.ttf", 14);
+        aFontDroidSans14 = addFontAsset("data/font/DroidSans.ttf", 14);
     
         aTexImrodDiffuse = addTextureAsset("data/textures/imrod-diffuse.png");
         aTexImrodNormal = addTextureAsset("data/textures/imrod-normal.png");
@@ -563,6 +216,8 @@ class TestScene: BaseScene3D
         // Configure environment
         environment.useSkyColors = true;
         environment.atmosphericFog = true;
+        environment.fogStart = 0.0f;
+        environment.fogEnd = 300.0f;
         
         // Create camera and view
         auto eCamera = createEntity3D();
@@ -578,37 +233,55 @@ class TestScene: BaseScene3D
         lens = New!PostFilterLensDistortion(fbAA, assetManager);
 
         // Create material backends
+        pbrMatBackend = New!PBRClusteredBackend(lightManager, assetManager);
+        pbrMatBackend.shadowMap = shadowMap;
         shadelessMatBackend = New!ShadelessBackend(assetManager);
         skyMatBackend = New!SkyBackend(assetManager);
         
-        // Create materials
-        auto matDefault = createMaterial();
+        GenericMaterialBackend matBackend = pbrMatBackend;
         
-        auto matImrod = createMaterial();
+        // Create materials
+        auto matDefault = createMaterial(matBackend);
+        matDefault.roughness = 0.5f;
+        matDefault.metallic = 0.0f;
+        
+        auto matImrod = createMaterial(matBackend);
         matImrod.diffuse = aTexImrodDiffuse.texture;
+        //matImrod.diffuse = Color4f(0.5,0.5,0.5,1);
         matImrod.normal = aTexImrodNormal.texture;
+        matImrod.roughness = 0.5f;
+        matImrod.metallic = 0.0f;
 
-        auto mStone = createMaterial();
+        auto mStone = createMaterial(matBackend);
         mStone.diffuse = aTexStoneDiffuse.texture;
         mStone.normal = aTexStoneNormal.texture;
         mStone.height = aTexStoneHeight.texture;
-        mStone.roughness = 0.2f;
+        mStone.roughness = 0.9f;
         mStone.parallax = ParallaxSimple; //also try ParallaxOcclusionMapping
+        mStone.metallic = 0.0f;
         
-        auto mGround = createMaterial();
+        auto mGround = createMaterial(matBackend);
         mGround.diffuse = aTexStone2Diffuse.texture;
         mGround.normal = aTexStone2Normal.texture;
         mGround.height = aTexStone2Height.texture;
-        mGround.roughness = 0.1f;
+        mGround.roughness = 0.3f;
         mGround.parallax = ParallaxSimple;
         
-        auto mCrate = createMaterial();
+        auto mCrate = createMaterial(matBackend);
         mCrate.diffuse = aTexCrateDiffuse.texture;
         mCrate.roughness = 0.9f;
         
-        auto matCar = createMaterial();
+        auto matCar = createMaterial(matBackend);
         matCar.diffuse = aTexCarDiffuse.texture;
         matCar.normal = aTexCarNormal.texture;
+        matCar.roughness = 0.05f;
+        matCar.metallic = 0.9f;
+        
+        auto matWheel = createMaterial(matBackend);
+        matWheel.diffuse = aTexCarDiffuse.texture;
+        matWheel.normal = aTexCarNormal.texture;
+        matWheel.roughness = 0.2f;
+        matWheel.metallic = 0.01f;
         
         auto matSky = createMaterial(skyMatBackend);
         matSky.depthWrite = false;
@@ -688,19 +361,20 @@ class TestScene: BaseScene3D
         eCar.material = matCar;
         eCar.position = Vector3f(30.0f, 5.0f, 0.0f);
 
-        gBox = New!GeomBox(Vector3f(2.2f, 0.5f, 3.3f));
+        gBox = New!GeomBox(Vector3f(2.0f, 1.0f, 3.0f));
         auto b = world.addDynamicBody(Vector3f(0, 0, 0), 0.0f);
         b.raycastable = false;
+        b.bounce = 1.2f;
         vehicle = New!VehicleController(eCar, b, world);
         eCar.controller = vehicle;
-        world.addShapeComponent(b, gBox, Vector3f(0.0f, 2.0f, 0.0f), 2000.0f);
-        b.centerOfMass.y = -0.9f;
+        world.addShapeComponent(b, gBox, Vector3f(0.0f, 1.5f, 0.0f), 2000.0f);
+        b.centerOfMass.y = -0.5f; // Artifically lowered center of mass
         
-        foreach(ref w; eWheels)
+        foreach(i, ref w; eWheels)
         {
             w = createEntity3D(eCar);
             w.drawable = aWheel.mesh;
-            w.material = matCar;
+            w.material = matWheel;
         }
         
         carView = New!CarView(eventManager, vehicle, assetManager);
@@ -726,27 +400,50 @@ class TestScene: BaseScene3D
         auto ff1 = New!Vortex(eVortex, psys, 100, 10);
         
         // Create HUD text
-        auto text = New!TextLine(aFont.font, 
-            "Press <LMB> to switch mouse look, WASD to move, spacebar to jump, Enter to get in the car, <RMB> to create a light, arrow keys to rotate the sun", 
-            assetManager);
-        text.color = Color4f(1.0f, 1.0f, 1.0f, 0.7f);
+        helpText = New!TextLine(aFontDroidSans14.font, helpTextFirstPerson, assetManager);
+        helpText.color = Color4f(1.0f, 1.0f, 1.0f, 0.7f);
         
         auto eText = createEntity2D();
-        eText.drawable = text;
+        eText.drawable = helpText;
         eText.position = Vector3f(16.0f, 30.0f, 0.0f);
         
-        dynamicText = New!TextLine(aFont.font, "0", assetManager);
-        dynamicText.color = Color4f(1.0f, 1.0f, 1.0f, 0.7f);
+        infoText = New!TextLine(aFontDroidSans14.font, "0", assetManager);
+        infoText.color = Color4f(1.0f, 1.0f, 1.0f, 0.7f);
         
         auto eText2 = createEntity2D();
-        eText2.drawable = dynamicText;
+        eText2.drawable = infoText;
         eText2.position = Vector3f(16.0f, 60.0f, 0.0f);
+        
+        messageText = New!TextLine(aFontDroidSans14.font, 
+            "Press <Enter> to get in the car", 
+            assetManager);
+        messageText.color = Color4f(1.0f, 1.0f, 1.0f, 0.0f);
+        
+        auto eMessage = createEntity2D();
+        eMessage.drawable = messageText;
+        eMessage.position = Vector3f(eventManager.windowWidth * 0.5f - messageText.width * 0.5f, eventManager.windowHeight * 0.5f, 0.0f);
     }
     
     override void onStart()
     {
         super.onStart();
         actor.play();
+    }
+    
+    override void onJoystickButtonDown(int button)
+    {    
+        if (button == SDL_CONTROLLER_BUTTON_A)
+            joystickButtonAPressed = true;
+        else if (button == SDL_CONTROLLER_BUTTON_B)
+            joystickButtonBPressed = true;
+    }
+    
+    override void onJoystickButtonUp(int button)
+    {    
+        if (button == SDL_CONTROLLER_BUTTON_A)
+            joystickButtonAPressed = false;
+        else if (button == SDL_CONTROLLER_BUTTON_B)
+            joystickButtonBPressed = false;
     }
     
     override void onKeyDown(int key)
@@ -761,12 +458,14 @@ class TestScene: BaseScene3D
                 carViewEnabled = false;
                 character.rbody.active = true;
                 character.rbody.position = vehicle.rbody.position + vehicle.rbody.orientation.rotate(Vector3f(1.0f, 0.0f, 0.0f).normalized) * 4.0f + Vector3f(0, 3, 0);
+                helpText.text = helpTextFirstPerson;
             }
             else if (distance(fpview.cameraPosition, vehicle.rbody.position) <= 4.0f)
             {
                 view = carView;
                 carViewEnabled = true;
                 character.rbody.active = false;
+                helpText.text = helpTextVehicle;
             }
         }
     }
@@ -787,13 +486,13 @@ class TestScene: BaseScene3D
         {
             Vector3f pos = fpview.camera.position + fpview.camera.characterMatrix.forward * -2.0f + Vector3f(0, 1, 0);
             Color4f color = lightColors[uniform(0, 9)];
-            createLightBall(pos, color, lightBallRadius, 4.0f);
+            createLightBall(pos, color, 2.0f, lightBallRadius, 4.0f);
         }
     }
     
-    Entity createLightBall(Vector3f pos, Color4f color, float areaRadius, float volumeRadius)
+    Entity createLightBall(Vector3f pos, Color4f color, float energy, float areaRadius, float volumeRadius)
     {
-        auto light = createLight(pos, color, volumeRadius, areaRadius);
+        auto light = createLight(pos, color, energy, volumeRadius, areaRadius);
             
         if (light)
         {
@@ -840,17 +539,23 @@ class TestScene: BaseScene3D
     {
         if (carViewEnabled)
         {
-            if (eventManager.keyPressed[KEY_W])
+            if (eventManager.keyPressed[KEY_W] || joystickButtonAPressed)
                 vehicle.accelerateForward(200.0f);
-            else if (eventManager.keyPressed[KEY_S])
+            else if (eventManager.keyPressed[KEY_S] || joystickButtonBPressed)
                 vehicle.accelerateBackward(200.0f);
             else
                 vehicle.brake = false;
+                
+            float jAxis = eventManager.joystickAxis(SDL_CONTROLLER_AXIS_LEFTX);
 
             if (eventManager.keyPressed[KEY_A])
                 vehicle.steer(-2.0f);
             else if (eventManager.keyPressed[KEY_D])
                 vehicle.steer(2.0f);
+            else if (jAxis < -0.02f || jAxis > 0.02f)
+            {
+                vehicle.steer(jAxis * 2.0f);
+            }
             else
                 vehicle.resetSteering();
         }
@@ -862,8 +567,16 @@ class TestScene: BaseScene3D
             auto vWheel = vehicle.wheels[i];
             w.position = vWheel.position;
             
-            w.rotation = rotationQuaternion(Axis.y, degtorad(-vWheel.steeringAngle)) * 
-                         rotationQuaternion(Axis.x, degtorad(vWheel.roll));
+            if (vehicle.wheels[i].dirCoef > 0.0f)
+            {
+                w.rotation = rotationQuaternion(Axis.y, degtorad(-vWheel.steeringAngle)) * 
+                             rotationQuaternion(Axis.x, degtorad(vWheel.roll));
+            }
+            else
+            {
+                w.rotation = rotationQuaternion(Axis.y, degtorad(-vWheel.steeringAngle + 180.0f)) * 
+                             rotationQuaternion(Axis.x, degtorad(-vWheel.roll));
+            }
         }
     }
     
@@ -893,7 +606,7 @@ class TestScene: BaseScene3D
             rotationQuaternion(Axis.y, degtorad(sunTurn)) * 
             rotationQuaternion(Axis.x, degtorad(sunPitch));
 
-        // Update dynamicText with some debug info
+        // Update infoText with some debug info
         uint n = sprintf(lightsText.ptr, 
             "FPS: %u | visible lights: %u | total lights: %u | max visible lights: %u", 
             eventManager.fps, 
@@ -901,7 +614,18 @@ class TestScene: BaseScene3D
             lightManager.lightSources.length, 
             lightManager.maxNumLights);
         string s = cast(string)lightsText[0..n];
-        dynamicText.setText(s);
+        infoText.setText(s);
+        
+        if (!carViewEnabled && distance(fpview.cameraPosition, vehicle.rbody.position) <= 4.0f)
+        {
+            if (messageText.color.a < 1.0f)
+                messageText.color.a += 4.0f * dt;
+        }
+        else
+        {
+            if (messageText.color.a > 0.0f)
+                messageText.color.a -= 4.0f * dt;
+        }
     }
     
     char[100] lightsText;
