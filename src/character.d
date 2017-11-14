@@ -107,17 +107,6 @@ class CharacterController: Owner
     {
         Vector3f targetVelocity = direction * speed;
 
-        Vector3f velocityChange = targetVelocity - rbody.linearVelocity;
-        velocityChange.x = clamp(velocityChange.x, -maxVelocityChange, maxVelocityChange);
-        velocityChange.z = clamp(velocityChange.z, -maxVelocityChange, maxVelocityChange);
-        
-        if (clampY && !flyMode)
-            velocityChange.y = 0;
-        else
-            velocityChange.y = clamp(velocityChange.y, -maxVelocityChange, maxVelocityChange);
-            
-        rbody.linearVelocity += velocityChange;
-
         if (!flyMode)
         {
             onGround = checkOnGround();
@@ -128,14 +117,14 @@ class CharacterController: Owner
                 rbody.gravity = Vector3f(0.0f, -artificalGravity, 0.0f);
                 
             selfTurn = 0.0f;
-            if (onGround && floorBody && speed == 0.0f && jSpeed == 0.0f)
+            if (onGround && floorBody /*&& speed == 0.0f && jSpeed == 0.0f */)
             {
                 Vector3f relPos = rbody.position - floorBody.position;
                 Vector3f rotVel = cross(floorBody.angularVelocity, relPos);
-                rbody.linearVelocity = floorBody.linearVelocity;
+                targetVelocity += floorBody.linearVelocity;
                 if (!floorBody.dynamic)
                 {
-                    rbody.linearVelocity += rotVel;
+                    targetVelocity += rotVel;
                     selfTurn = -floorBody.angularVelocity.y;
                 }
             }
@@ -148,6 +137,17 @@ class CharacterController: Owner
             speed *= 0.95f;
             jSpeed *= 0.95f;
         }
+        
+        Vector3f velocityChange = targetVelocity - rbody.linearVelocity;
+        velocityChange.x = clamp(velocityChange.x, -maxVelocityChange, maxVelocityChange);
+        velocityChange.z = clamp(velocityChange.z, -maxVelocityChange, maxVelocityChange);
+        
+        if (clampY && !flyMode)
+            velocityChange.y = 0;
+        else
+            velocityChange.y = clamp(velocityChange.y, -maxVelocityChange, maxVelocityChange);
+            
+        rbody.linearVelocity += velocityChange;
     }
 
     bool checkOnGround()

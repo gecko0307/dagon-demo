@@ -83,6 +83,7 @@ class TestScene: BaseScene3D
     TextureAsset aTexCrateDiffuse;
     
     TextureAsset aTexParticle;
+    TextureAsset aTexParticleDust;
     
     TextureAsset aTexCarDiffuse;
     TextureAsset aTexCarNormal;
@@ -114,26 +115,22 @@ class TestScene: BaseScene3D
     
     PhysicsWorld world;
     RigidBody bGround;
-    Geometry gGround;
     float lightBallRadius = 0.5f;
     Geometry gLightBall;
-    GeomEllipsoid gSphere;
-    GeomBox gSensor;
     CharacterController character;
-    GeomBox gCrate;
     VehicleController vehicle;
-    Geometry gBox;
+    
     BVHTree!Triangle bvh;
-    bool initializedPhysics = false;
+    bool haveBVH = false;
     
     Entity[4] eWheels;
+    ParticleSystem psysLeft;
+    ParticleSystem psysRight;
     
     Framebuffer fb;
     Framebuffer fbAA;
     PostFilterFXAA fxaa;
     PostFilterLensDistortion lens;
-    
-    Entity eParticles;
     
     string helpTextFirstPerson = "Press <LMB> to switch mouse look, WASD to move, spacebar to jump, <RMB> to create a light, arrow keys to rotate the sun";
     string helpTextVehicle = "Press W/S to accelerate forward/backward, A/D to steer, Enter to get out of the car";
@@ -182,6 +179,7 @@ class TestScene: BaseScene3D
         aTexCrateDiffuse = addTextureAsset("data/textures/crate.png");
 
         aTexParticle = addTextureAsset("data/textures/particle.png");
+        aTexParticleDust = addTextureAsset("data/textures/dust.png");
         
         aCastle = New!OBJAsset(assetManager);
         addAsset(aCastle, "data/obj/castle.obj");
@@ -264,24 +262,25 @@ class TestScene: BaseScene3D
         mGround.diffuse = aTexStone2Diffuse.texture;
         mGround.normal = aTexStone2Normal.texture;
         mGround.height = aTexStone2Height.texture;
-        mGround.roughness = 0.3f;
+        mGround.roughness = 0.8f;
         mGround.parallax = ParallaxSimple;
         
         auto mCrate = createMaterial(matBackend);
         mCrate.diffuse = aTexCrateDiffuse.texture;
         mCrate.roughness = 0.9f;
+        mCrate.metallic = 0.0f;
         
         auto matCar = createMaterial(matBackend);
         matCar.diffuse = aTexCarDiffuse.texture;
         matCar.normal = aTexCarNormal.texture;
-        matCar.roughness = 0.05f;
-        matCar.metallic = 0.9f;
+        matCar.roughness = 0.01f;
+        matCar.metallic = 1.0f;
         
         auto matWheel = createMaterial(matBackend);
         matWheel.diffuse = aTexCarDiffuse.texture;
         matWheel.normal = aTexCarNormal.texture;
         matWheel.roughness = 0.2f;
-        matWheel.metallic = 0.01f;
+        matWheel.metallic = 0.0f;
         
         auto matSky = createMaterial(skyMatBackend);
         matSky.depthWrite = false;
@@ -317,32 +316,33 @@ class TestScene: BaseScene3D
         eMrfixit.defaultController.swapZY = true;
         
         // Create physics world 
-        world = New!PhysicsWorld();
+        world = New!PhysicsWorld(assetManager);
 
         // Create BVH for castle model to handle collisions
         Mesh[] meshes = [aCastle.mesh];
         bvh = meshBVH(meshes);
+        haveBVH = true;
         world.bvhRoot = bvh.root;
         
         // Create ground plane
         RigidBody bGround = world.addStaticBody(Vector3f(0.0f, 0.0f, 0.0f));
-        gGround = New!GeomBox(Vector3f(100.0f, 1.0f, 100.0f));
+        auto gGround = New!GeomBox(world, Vector3f(100.0f, 1.0f, 100.0f));
         world.addShapeComponent(bGround, gGround, Vector3f(0.0f, -1.0f, 0.0f), 1.0f);
         auto eGround = createEntity3D();
         eGround.drawable = New!ShapePlane(200, 200, 100, assetManager);
         eGround.material = mGround;
 
         // Create dmech geometries for dynamic objects
-        gLightBall = New!GeomSphere(lightBallRadius);
-        gSphere = New!GeomEllipsoid(Vector3f(0.9f, 1.0f, 0.9f));
+        gLightBall = New!GeomSphere(world, lightBallRadius);
+        auto gSphere = New!GeomEllipsoid(world, Vector3f(0.9f, 1.0f, 0.9f));
         
         // Create character controller
         character = New!CharacterController(world, fpview.camera.position, 80.0f, gSphere, assetManager);
-        gSensor = New!GeomBox(Vector3f(0.5f, 0.5f, 0.5f));
+        auto gSensor = New!GeomBox(world, Vector3f(0.5f, 0.5f, 0.5f));
         character.createSensor(gSensor, Vector3f(0.0f, -0.75f, 0.0f));
 
         // Create boxes
-        gCrate = New!GeomBox(Vector3f(1.0f, 1.0f, 1.0f));
+        auto gCrate = New!GeomBox(world, Vector3f(1.0f, 1.0f, 1.0f));
         foreach(i; 0..5)
         {
             auto eCrate = createEntity3D();
@@ -361,14 +361,13 @@ class TestScene: BaseScene3D
         eCar.material = matCar;
         eCar.position = Vector3f(30.0f, 5.0f, 0.0f);
 
-        gBox = New!GeomBox(Vector3f(2.0f, 1.0f, 3.0f));
+        auto gBox = New!GeomBox(world, Vector3f(2.0f, 1.0f, 3.0f));
         auto b = world.addDynamicBody(Vector3f(0, 0, 0), 0.0f);
-        b.raycastable = false;
         b.bounce = 1.2f;
         vehicle = New!VehicleController(eCar, b, world);
         eCar.controller = vehicle;
         world.addShapeComponent(b, gBox, Vector3f(0.0f, 1.5f, 0.0f), 2000.0f);
-        b.centerOfMass.y = -0.5f; // Artifically lowered center of mass
+        b.centerOfMass.y = -0.25f; //-0.5f; // Artifically lowered center of mass
         
         foreach(i, ref w; eWheels)
         {
@@ -380,25 +379,35 @@ class TestScene: BaseScene3D
         carView = New!CarView(eventManager, vehicle, assetManager);
         carViewEnabled = false;
         
-        initializedPhysics = true;
+        auto mParticlesDust = createMaterial(shadelessMatBackend); // TODO: a specialized particle material backend
+        mParticlesDust.diffuse = aTexParticleDust.texture;
+        mParticlesDust.blending = Transparent;
+        mParticlesDust.depthWrite = false;
         
-        // Create particle system
-        auto mParticles = createMaterial(shadelessMatBackend); // TODO: a specialized particle material backend
-        mParticles.diffuse = aTexParticle.texture;
-        mParticles.blending = Additive;
-        mParticles.depthWrite = false;
-        eParticles = createEntity3D();
-        eParticles.position.x = 4.0f;
-        eParticles.position.y = 0.6f;
-        ParticleSystem psys = New!ParticleSystem(eParticles, 100, view);
-        psys.material = mParticles;
-        
-        // Create vortex force field for particles
-        auto eVortex = createEntity3D();
-        eVortex.position = Vector3f(0, 0, 0);
-        eVortex.rotation = rotationQuaternion(0, degtorad(-90.0f));
-        auto ff1 = New!Vortex(eVortex, psys, 100, 10);
-        
+        auto eParticlesRights = createEntity3D(eCar);
+        psysRight = New!ParticleSystem(eParticlesRights, 20);
+        eParticlesRights.position = Vector3f(-1.2f, 0, -2.8f);
+        psysRight.minLifetime = 0.1f;
+        psysRight.maxLifetime = 1.5f;
+        psysRight.minSize = 0.5f;
+        psysRight.maxSize = 1.0f;
+        psysRight.minInitialSpeed = 0.2f;
+        psysRight.maxInitialSpeed = 0.2f;
+        psysRight.scaleStep = Vector2f(1, 1);
+        psysRight.material = mParticlesDust;
+
+        auto eParticlesLeft = createEntity3D(eCar);
+        psysLeft = New!ParticleSystem(eParticlesLeft, 20);
+        eParticlesLeft.position = Vector3f(1.2f, 0, -2.8f);
+        psysLeft.minLifetime = 0.1f;
+        psysLeft.maxLifetime = 1.5f;
+        psysLeft.minSize = 0.5f;
+        psysLeft.maxSize = 1.0f;
+        psysLeft.minInitialSpeed = 0.2f;
+        psysLeft.maxInitialSpeed = 0.2f;
+        psysLeft.scaleStep = Vector2f(1, 1);
+        psysLeft.material = mParticlesDust;
+
         // Create HUD text
         helpText = New!TextLine(aFontDroidSans14.font, helpTextFirstPerson, assetManager);
         helpText.color = Color4f(1.0f, 1.0f, 1.0f, 0.7f);
@@ -486,7 +495,7 @@ class TestScene: BaseScene3D
         {
             Vector3f pos = fpview.camera.position + fpview.camera.characterMatrix.forward * -2.0f + Vector3f(0, 1, 0);
             Color4f color = lightColors[uniform(0, 9)];
-            createLightBall(pos, color, 2.0f, lightBallRadius, 4.0f);
+            createLightBall(pos, color, 5.0f, lightBallRadius, 4.0f);
         }
     }
     
@@ -520,7 +529,7 @@ class TestScene: BaseScene3D
     
     // Character control
     void updateCharacter(double dt)
-    { 
+    {
         character.rotation.y = fpview.camera.turn;
         Vector3f forward = fpview.camera.characterMatrix.forward;
         Vector3f right = fpview.camera.characterMatrix.right; 
@@ -537,6 +546,9 @@ class TestScene: BaseScene3D
 
     void updateVehicle(double dt)
     {
+        if (eventManager.keyPressed[KEY_Z])
+            vehicle.accelerateForward(200.0f);
+    
         if (carViewEnabled)
         {
             if (eventManager.keyPressed[KEY_W] || joystickButtonAPressed)
@@ -560,6 +572,11 @@ class TestScene: BaseScene3D
                 vehicle.resetSteering();
         }
         
+        if (vehicle.wheels[2].isDrifting) psysLeft.emitting = true;
+        else psysLeft.emitting = false;
+        if (vehicle.wheels[3].isDrifting) psysRight.emitting = true;
+        else psysRight.emitting = false;
+        
         vehicle.fixedStepUpdate(dt);
         
         foreach(i, ref w; eWheels)
@@ -582,10 +599,9 @@ class TestScene: BaseScene3D
     
     override void onLogicsUpdate(double dt)
     {
-        // Update our character and physics
+        // Update our character, vehicle and physics
         if (!carViewEnabled)
             updateCharacter(dt);
-        
         updateVehicle(dt);
         world.update(dt);
         
@@ -593,9 +609,6 @@ class TestScene: BaseScene3D
         // TODO: maybe make character controller an Entity, so that
         // this could be done automatically with parenting mechanism?
         fpview.camera.position = character.rbody.position;
-        
-        // Circular motion of a particle emitter
-        eParticles.position = Vector3f(cos(rc3d.time), 1.0f, sin(rc3d.time)) * 5.0f;
         
         // Sun control
         if (eventManager.keyPressed[KEY_DOWN]) sunPitch += 30.0f * dt;
@@ -657,18 +670,11 @@ class TestScene: BaseScene3D
     {
         super.onRelease();
         
-        // If we have created dmech objects, we should release them
-        if (initializedPhysics)
+        // If we have created BVH, we should release it
+        if (haveBVH)
         {
-            Delete(world);
-            Delete(gGround);
-            Delete(gLightBall);
-            Delete(gSphere);
-            Delete(gSensor);
-            Delete(gCrate);
-            Delete(gBox);
             bvh.free();
-            initializedPhysics = false;
+            haveBVH = false;
         }
     }
 }

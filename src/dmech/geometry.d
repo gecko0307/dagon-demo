@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2013-2015 Timur Gafarov
+Copyright (c) 2013-2017 Timur Gafarov
 
 Boost Software License - Version 1.0 - August 17th, 2003
 
@@ -30,12 +30,15 @@ module dmech.geometry;
 
 import std.math;
 
+import dlib.core.ownership;
 import dlib.core.memory;
 import dlib.math.vector;
 import dlib.math.matrix;
 import dlib.math.transformation;
 import dlib.math.utils;
 import dlib.geometry.aabb;
+
+import dmech.world;
 
 enum GeomType
 {
@@ -45,15 +48,17 @@ enum GeomType
     Cylinder,
     Cone,
     Ellipsoid,
-    Triangle
+    Triangle,
+    UserDefined
 }
 
-abstract class Geometry: Freeable
+abstract class Geometry: Owner
 {
     GeomType type = GeomType.Undefined;
 
-    this()
+    this(Owner o)
     {
+        super(o);
     }
 
     Vector3f supportPoint(Vector3f dir)
@@ -76,9 +81,9 @@ class GeomSphere: Geometry
 {
     float radius;
 
-    this(float r)
+    this(PhysicsWorld world, float r)
     {
-        super();
+        super(world);
         type = GeomType.Sphere;
         radius = r;
     }
@@ -103,11 +108,6 @@ class GeomSphere: Geometry
     {
         return AABB(position, Vector3f(radius, radius, radius));
     }
-
-    void free()
-	  {
-		    Delete(this);
-	  }
 }
 
 class GeomBox: Geometry
@@ -115,9 +115,9 @@ class GeomBox: Geometry
     Vector3f halfSize;
     float bsphereRadius;
 
-    this(Vector3f hsize)
+    this(PhysicsWorld world, Vector3f hsize)
     {
-        super();
+        super(world);
         type = GeomType.Box;
         halfSize = hsize;
         bsphereRadius = halfSize.length;
@@ -150,11 +150,6 @@ class GeomBox: Geometry
         return AABB(position,
             Vector3f(bsphereRadius, bsphereRadius, bsphereRadius));
     }
-
-    void free()
-	  {
-		    Delete(this);
-	  }
 }
 
 class GeomCylinder: Geometry
@@ -162,9 +157,9 @@ class GeomCylinder: Geometry
     float height;
     float radius;
 
-    this(float h, float r)
+    this(PhysicsWorld world, float h, float r)
     {
-        super();
+        super(world);
         type = GeomType.Cylinder;
         height = h;
         radius = r;
@@ -209,11 +204,6 @@ class GeomCylinder: Geometry
         float d = sqrt(rsum * rsum + height * height) * 0.5f;
         return AABB(position, Vector3f(d, d, d));
     }
-
-    void free()
-	  {
-		    Delete(this);
-	  }
 }
 
 class GeomCone: Geometry
@@ -221,9 +211,9 @@ class GeomCone: Geometry
     float radius;
     float height;
 
-    this(float h, float r)
+    this(PhysicsWorld world, float h, float r)
     {
-        super();
+        super(world);
         type = GeomType.Cone;
         height = h;
         radius = r;
@@ -269,20 +259,15 @@ class GeomCone: Geometry
         float d = sqrt(rsum * rsum + height * height) * 0.5f;
         return AABB(position, Vector3f(d, d, d));
     }
-
-    void free()
-	  {
-		    Delete(this);
-	  }
 }
 
 class GeomEllipsoid: Geometry
 {
     Vector3f radii;
 
-    this(Vector3f r)
+    this(PhysicsWorld world, Vector3f r)
     {
-        super();
+        super(world);
         type = GeomType.Ellipsoid;
         radii = r;
     }
@@ -309,20 +294,15 @@ class GeomEllipsoid: Geometry
     {
         return AABB(position, radii);
     }
-
-    void free()
-	  {
-		    Delete(this);
-	  }
 }
 
 class GeomTriangle: Geometry
 {
     Vector3f[3] v;
 
-    this(Vector3f a, Vector3f b, Vector3f c)
+    this(PhysicsWorld world, Vector3f a, Vector3f b, Vector3f c)
     {
-        super();
+        super(world);
         type = GeomType.Triangle;
         v[0] = a;
         v[1] = b;
@@ -352,9 +332,4 @@ class GeomTriangle: Geometry
     }
 
     // TODO: boundingBox
-
-    void free()
-	  {
-		    Delete(this);
-	  }
 }

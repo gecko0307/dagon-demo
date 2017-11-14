@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2013-2015 Timur Gafarov
+Copyright (c) 2013-2017 Timur Gafarov
 
 Boost Software License - Version 1.0 - August 17th, 2003
 
@@ -31,6 +31,7 @@ module dmech.world;
 import std.math;
 import std.range;
 
+import dlib.core.ownership;
 import dlib.core.memory;
 import dlib.container.array;
 import dlib.math.vector;
@@ -55,13 +56,14 @@ import dmech.mpr;
 import dmech.raycast;
 
 /*
- * World object stores bodies and constraints and performs
- * simulation cycles on them.
+ * World object stores bodies and constraints
+ * and performs simulation cycles on them.
+ * It also provides a generalized raycast query for all bodies.
  */
 
 alias PairHashTable!PersistentContactManifold ContactCache;
 
-class PhysicsWorld: Freeable
+class PhysicsWorld: Owner
 {
     DynamicArray!ShapeComponent shapeComponents;
     DynamicArray!RigidBody staticBodies;
@@ -87,20 +89,22 @@ class PhysicsWorld: Freeable
     ShapeComponent proxyTriShape;
     GeomTriangle proxyTriGeom;
 
-    this(size_t maxCollisions = 1000)
+    this(Owner owner, size_t maxCollisions = 1000)
     {
-        gravity = Vector3f(0.0f, -9.80665f, 0.0f); // Earth -9.80665f
+        super(owner);
 
-        manifolds = New!ContactCache(maxCollisions);
+        gravity = Vector3f(0.0f, -9.80665f, 0.0f); // Earth conditions
+
+        manifolds = New!ContactCache(this, maxCollisions);
 
         // Create proxy triangle
-        proxyTri = New!RigidBody();
+        proxyTri = New!RigidBody(this);
         proxyTri.position = Vector3f(0, 0, 0);
-        proxyTriGeom = New!GeomTriangle(
+        proxyTriGeom = New!GeomTriangle(this,
             Vector3f(-1.0f, 0.0f, -1.0f),
             Vector3f(+1.0f, 0.0f,  0.0f),
             Vector3f(-1.0f, 0.0f, +1.0f));
-        proxyTriShape = New!ShapeComponent(proxyTriGeom, Vector3f(0, 0, 0), 1);
+        proxyTriShape = New!ShapeComponent(this, proxyTriGeom, Vector3f(0, 0, 0), 1);
         proxyTriShape.id = maxShapeId;
         maxShapeId++;
         proxyTriShape.transformation =
@@ -123,7 +127,7 @@ class PhysicsWorld: Freeable
 
     RigidBody addDynamicBody(Vector3f pos, float mass = 0.0f)
     {
-        auto b = New!RigidBody();
+        auto b = New!RigidBody(this);
         b.position = pos;
         b.mass = mass;
         b.invMass = 1.0f / mass;
@@ -144,7 +148,7 @@ class PhysicsWorld: Freeable
 
     RigidBody addStaticBody(Vector3f pos)
     {
-        auto b = New!RigidBody();
+        auto b = New!RigidBody(this);
         b.position = pos;
         b.mass = float.infinity;
         b.invMass = 0.0f;
@@ -165,7 +169,7 @@ class PhysicsWorld: Freeable
 
     ShapeComponent addShapeComponent(RigidBody b, Geometry geom, Vector3f position, float mass)
     {
-        auto shape = New!ShapeComponent(geom, position, mass);
+        auto shape = New!ShapeComponent(this, geom, position, mass);
         shapeComponents.append(shape);
         shape.id = maxShapeId;
         maxShapeId++;
@@ -175,7 +179,7 @@ class PhysicsWorld: Freeable
 
     ShapeComponent addSensor(RigidBody b, Geometry geom, Vector3f position)
     {
-        auto shape = New!ShapeComponent(geom, position, 0.0f);
+        auto shape = New!ShapeComponent(this, geom, position, 0.0f);
         shape.raycastable = false;
         shape.solve = false;
         shapeComponents.append(shape);
@@ -203,7 +207,6 @@ class PhysicsWorld: Freeable
             m.update();
         }
 
-        //foreach(b; dynamicBodiesArray)
         for (size_t i = 0; i < dynamicBodiesArray.length; i++)
         {
             auto b = dynamicBodiesArray[i];
@@ -228,7 +231,6 @@ class PhysicsWorld: Freeable
 
         solveConstraints(dt);
 
-        //foreach(b; dynamicBodiesArray)
         for (size_t i = 0; i < dynamicBodiesArray.length; i++)
         {
             auto b = dynamicBodiesArray[i];
@@ -243,7 +245,6 @@ class PhysicsWorld: Freeable
             solvePositionError(c, m.numContacts);
         }
 
-        //foreach(b; dynamicBodiesArray)
         for (size_t i = 0; i < dynamicBodiesArray.length; i++)
         {
             auto b = dynamicBodiesArray[i];
@@ -290,7 +291,6 @@ class PhysicsWorld: Freeable
         Ray ray = Ray(rayStart, rayStart + rayDir * maxRayDist);
 
         if (bvhRoot !is null)
-        //bvhRoot.traverseByRay(ray, (ref Triangle tri)
         foreach(tri; bvhRoot.traverseByRay(&ray))
         {
             Vector3f ip;
@@ -444,12 +444,6 @@ class PhysicsWorld: Freeable
                         c.shape1 = shape;
                         c.shape2 = proxyTriShape;
                         c.shape2pos = tri.barycenter;
-                        //Plane plane;
-                        //plane.fromPointAndNormal(tri.barycenter, tri.normal);
-                        //if (plane.distance(c.body1.worldCenterOfMass) < 0.0f)
-                        //    c.normal = -tri.normal;
-                        //else
-                        //    c.normal = tri.normal;
                         contacts[numContacts] = c;
                         contactTris[numContacts] = tri;
                         numContacts++;
@@ -477,11 +471,6 @@ class PhysicsWorld: Freeable
                     deepestContactIdx = i;
                     maxPen = contacts[i].penetration;
                 }
-
-                //Vector3f dirToContact = (contacts[i].point - rb.position).normalized;
-                //float groundness = dot(gravity.normalized, dirToContact);
-                //if (groundness > 0.7f)
-                //    rb.onGround = true;
             }
             
             if (deepestContactIdx >= 0)
@@ -495,9 +484,6 @@ class PhysicsWorld: Freeable
                     PersistentContactManifold m1;
                     m1.addContact(*co);
                     manifolds.set(shape.id, proxyTriShape.id, m1);
-
-                    //c.body1.contactEvent(c);
-                    //c.body2.contactEvent(c);
 
                     shape.numCollisions++;
                 }
@@ -610,31 +596,26 @@ class PhysicsWorld: Freeable
 
     ~this()
     {
-        foreach(sh; shapeComponents.data)
-            sh.free();
+        //foreach(sh; shapeComponents.data)
+        //    sh.free();
         shapeComponents.free();
 
-        foreach(b; dynamicBodies.data)
-            b.free();
+        //foreach(b; dynamicBodies.data)
+        //    b.free();
         dynamicBodies.free();
 
-        foreach(b; staticBodies.data)
-            b.free();
+        //foreach(b; staticBodies.data)
+        //    b.free();
         staticBodies.free();
 
-        foreach(c; constraints.data)
-            c.free();
+        //foreach(c; constraints.data)
+        //    c.free();
         constraints.free();
 
-        manifolds.free();
+        //manifolds.free();
 
-        proxyTriGeom.free();
-        proxyTriShape.free();
-        proxyTri.free();
-    }
-
-    void free()
-    {
-        Delete(this);
+        //proxyTriGeom.free();
+        //proxyTriShape.free();
+        //proxyTri.free();
     }
 }

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2015 Timur Gafarov
+Copyright (c) 2014-2017 Timur Gafarov
 
 Boost Software License - Version 1.0 - August 17th, 2003
 
@@ -28,6 +28,7 @@ DEALINGS IN THE SOFTWARE.
 
 module dmech.shape;
 
+import dlib.core.ownership;
 import dlib.core.memory;
 import dlib.math.vector;
 import dlib.math.matrix;
@@ -35,6 +36,7 @@ import dlib.math.transformation;
 import dlib.geometry.aabb;
 import dlib.geometry.sphere;
 
+import dmech.world;
 import dmech.geometry;
 
 /*
@@ -45,7 +47,7 @@ import dmech.geometry;
  * One Geometry can be shared between multiple ShapeComponents.
  */
 
-class ShapeComponent: Freeable
+class ShapeComponent: Owner
 {
     Geometry geometry; // geometry
     Vector3f centroid; // position in body space
@@ -53,8 +55,6 @@ class ShapeComponent: Freeable
     uint id = 0;       // global identifier
 
     Matrix4x4f _transformation;
-
-    //alias geometry this;
 
     bool locked = false;
 
@@ -79,8 +79,10 @@ class ShapeComponent: Freeable
         }
     }
 
-    this(Geometry g, Vector3f c, float m)
+    this(PhysicsWorld world, Geometry g, Vector3f c, float m)
     {
+        super(world);
+
         geometry = g;
         centroid = c;
         mass = m;
@@ -127,10 +129,5 @@ class ShapeComponent: Freeable
         result.z = m.a34 + z;
 
         return result;
-    }
-
-    void free()
-    {
-        Delete(this);
     }
 }

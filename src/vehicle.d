@@ -199,18 +199,20 @@ class VehicleController: EntityController
         }
     }
 
-    void downRaycast(Vector3f pos, Vector3f down, out float height, out Vector3f n)
+    bool downRaycast(Vector3f pos, Vector3f down, out float height, out Vector3f n)
     {
         CastResult castResult;
         if (world.raycast(pos, down, 10, castResult, true, true))
         {
             height = castResult.point.y;
             n = castResult.normal;
+            return true;
         }
         else
         {
             height = 0;
             n = Vector3f(0.0f, 1.0f, 0.0f);
+            return false;
         }
     }
 
@@ -223,7 +225,11 @@ class VehicleController: EntityController
         float groundHeight = 0.0f;
         Vector3f groundNormal = Vector3f(0, 1, 0);
         Vector3f down = -w.transformation.up;
-        downRaycast(wheelPosW, down, groundHeight, groundNormal);
+        
+        rbody.raycastable = false;
+        bool isec = downRaycast(wheelPosW, down, groundHeight, groundNormal);
+        rbody.raycastable = true;
+        
         w.forcePosition = Vector3f(wheelPosW.x, groundHeight, wheelPosW.z);
 
         float suspToGround = wheelPosW.y - groundHeight;
@@ -231,6 +237,8 @@ class VehicleController: EntityController
         bool inAir;
 
         float invSteepness = clamp(dot(groundNormal, Vector3f(0, 1, 0)), 0.0f, 1.0f);
+        
+        w.isDrifting = false;
 
         if (suspToGround > (w.suspMaxLength + w.radius)) // wheel is in air
         {
@@ -239,9 +247,7 @@ class VehicleController: EntityController
             w.suspLength = w.suspMaxLength;
             w.position = w.suspPosition + Vector3f(0.0f, -w.suspMaxLength, 0.0f);
 
-            inAir = true;
-
-            w.isDrifting = false;
+            inAir = isec;
         }
         else // suspension is compressed
         {
@@ -270,7 +276,7 @@ class VehicleController: EntityController
             Vector3f radiusVector = w.forcePosition - rbody.position;
             Vector3f pointVelocity = rbody.linearVelocity + cross(rbody.angularVelocity, radiusVector);
             float sideSpeed = dot(pointVelocity, sideDir);
-            float sideFrictionForce = -sideSpeed * rbody.mass * 0.9f;
+            float sideFrictionForce = -sideSpeed * rbody.mass * 0.6f; //0.9f;
 
             rbody.applyForceAtPos(forwardDir * forwardForce, w.forcePosition);
             rbody.applyForceAtPos(sideDir * sideFrictionForce, w.forcePosition);
@@ -344,6 +350,8 @@ class VehicleController: EntityController
             torqueAcc -= 0.5f;
         else if (torqueAcc < 0.0f)
             torqueAcc += 0.5f;
+            
+        rbody.centerOfMass.z = -torqueAcc * 0.00002f;
     }
 
     override void update(double dt)
