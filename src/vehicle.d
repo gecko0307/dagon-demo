@@ -69,12 +69,12 @@ class Wheel: Owner
         suspPosition = pos;
         forcePosition = Vector3f(0.0f, 0.0f, 0.0f);
         radius = 0.6f;
-        suspStiffness = 50000.0f;
+        suspStiffness = 35000.0f; //50000.0f;
         suspDamping = 2000.0f;
         suspCompression = 0.0f;
         suspLength = 0.0f;
         suspLengthPrev = 0.0f;
-        suspMaxLength = 0.6f;
+        suspMaxLength = 0.8f; //0.6f;
         steeringAngle = 0.0f;
         torque = 0.0f;
         position = suspPosition - Vector3f(0.0f, suspMaxLength, 0.0f);
@@ -97,8 +97,9 @@ class VehicleController: EntityController
     Wheel[4] wheels; // TODO: use dynamic array and let the user create wheels
     float torqueAcc;
     bool brake = false;
-    float maxForwardTorque = 20000.0f; //30000.0f;
-    float maxBackwardTorque = 10000.0f;
+    float maxForwardTorque = 30000.0f; //30000.0f;
+    float maxBackwardTorque = 15000.0f;
+    float speed = 0.0f;
 
     this(Entity e, RigidBody b, PhysicsWorld w)
     {
@@ -276,14 +277,14 @@ class VehicleController: EntityController
             Vector3f radiusVector = w.forcePosition - rbody.position;
             Vector3f pointVelocity = rbody.linearVelocity + cross(rbody.angularVelocity, radiusVector);
             float sideSpeed = dot(pointVelocity, sideDir);
-            float sideFrictionForce = -sideSpeed * rbody.mass * 0.6f; //0.9f;
+            float sideFrictionForce = -sideSpeed * rbody.mass * 0.4f; //0.9f;
 
             rbody.applyForceAtPos(forwardDir * forwardForce, w.forcePosition);
             rbody.applyForceAtPos(sideDir * sideFrictionForce, w.forcePosition);
 
             inAir = false;
 
-            w.isDrifting = abs(sideSpeed) > 2.0f;
+            w.isDrifting = abs(sideSpeed) > 12.0f;
         }
 
         if (!brake)
@@ -347,11 +348,14 @@ class VehicleController: EntityController
             updateWheel(w, dt);
         
         if (torqueAcc > 0.0f)
-            torqueAcc -= 0.5f;
+            torqueAcc -= 0.01f;
         else if (torqueAcc < 0.0f)
-            torqueAcc += 0.5f;
+            torqueAcc += 0.01f;
             
-        rbody.centerOfMass.z = -torqueAcc * 0.00002f;
+        rbody.centerOfMass.z = -rbody.linearVelocity.z * 0.00001f; //-torqueAcc * 0.00001f;
+        rbody.centerOfMass.x = -rbody.linearVelocity.x * 0.00001f;
+        
+        speed = rbody.linearVelocity.length;
     }
 
     override void update(double dt)
@@ -376,7 +380,7 @@ class CarView: EventListener, View
         super(emngr, owner);
 
         this.vehicle = vehicle;
-        offset = Vector3f(0.0f, 0.0f, -7.0f);
+        offset = Vector3f(0.0f, 0.0f, -6.0f);
         position = vehicle.position + offset;
     }
 
@@ -387,7 +391,7 @@ class CarView: EventListener, View
         Vector3f tp = vehicle.position + vehicle.rotation.rotate(offset);
         tp.y = vehicle.position.y + 3.0f;
         Vector3f d = tp - position;
-        position += (d * 5.0f) * dt;
+        position += (d * 10.0f) * dt;
 
         _trans = lookAtMatrix(position, vehicle.position + Vector3f(0, 2, 0), Vector3f(0, 1, 0));
         _invTrans = _trans.inverse;

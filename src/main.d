@@ -367,7 +367,7 @@ class TestScene: BaseScene3D
         vehicle = New!VehicleController(eCar, b, world);
         eCar.controller = vehicle;
         world.addShapeComponent(b, gBox, Vector3f(0.0f, 1.5f, 0.0f), 2000.0f);
-        b.centerOfMass.y = -0.25f; //-0.5f; // Artifically lowered center of mass
+        b.centerOfMass.y = 0.0f; //-0.25f; //-0.5f; // Artifically lowered center of mass
         
         foreach(i, ref w; eWheels)
         {
@@ -546,27 +546,31 @@ class TestScene: BaseScene3D
 
     void updateVehicle(double dt)
     {
+        float accelerate = 50.0f + 10.0f * vehicle.speed;
+    
         if (eventManager.keyPressed[KEY_Z])
-            vehicle.accelerateForward(200.0f);
+            vehicle.accelerateForward(accelerate);
     
         if (carViewEnabled)
         {
             if (eventManager.keyPressed[KEY_W] || joystickButtonAPressed)
-                vehicle.accelerateForward(200.0f);
+                vehicle.accelerateForward(accelerate);
             else if (eventManager.keyPressed[KEY_S] || joystickButtonBPressed)
-                vehicle.accelerateBackward(200.0f);
+                vehicle.accelerateBackward(accelerate);
             else
                 vehicle.brake = false;
                 
             float jAxis = eventManager.joystickAxis(SDL_CONTROLLER_AXIS_LEFTX);
+            
+            float steering = 20.0f * abs(1.0f / vehicle.speed);
 
             if (eventManager.keyPressed[KEY_A])
-                vehicle.steer(-2.0f);
+                vehicle.steer(-steering);
             else if (eventManager.keyPressed[KEY_D])
-                vehicle.steer(2.0f);
+                vehicle.steer(steering);
             else if (jAxis < -0.02f || jAxis > 0.02f)
             {
-                vehicle.steer(jAxis * 2.0f);
+                vehicle.steer(jAxis * steering);
             }
             else
                 vehicle.resetSteering();
@@ -620,12 +624,14 @@ class TestScene: BaseScene3D
             rotationQuaternion(Axis.x, degtorad(sunPitch));
 
         // Update infoText with some debug info
+        float speed = vehicle.speed * 3.6f;
         uint n = sprintf(lightsText.ptr, 
-            "FPS: %u | visible lights: %u | total lights: %u | max visible lights: %u", 
+            "FPS: %u | visible lights: %u | total lights: %u | max visible lights: %u | speed: %f km/h", 
             eventManager.fps, 
             lightManager.currentlyVisibleLights, 
             lightManager.lightSources.length, 
-            lightManager.maxNumLights);
+            lightManager.maxNumLights,
+            speed);
         string s = cast(string)lightsText[0..n];
         infoText.setText(s);
         
