@@ -442,7 +442,7 @@ class TestScene: BaseScene3D
 
         auto gBox = New!GeomBox(world, Vector3f(1.3f, 0.6f, 2.8f));
         auto b = world.addDynamicBody(Vector3f(0, 0, 0), 0.0f);
-        b.damping = 0.5f;
+        b.damping = 0.8f;
         vehicle = New!VehicleController(eCar, b, world);
         eCar.controller = vehicle;
         world.addShapeComponent(b, gBox, Vector3f(0.0f, 0.8f, 0.0f), 1200.0f);
@@ -640,7 +640,7 @@ class TestScene: BaseScene3D
 
     void updateVehicle(double dt)
     {
-        float accelerate = 50.0f;
+        float accelerate = 100.0f;
     
         if (eventManager.keyPressed[KEY_Z])
             vehicle.accelerateForward(accelerate);
