@@ -87,6 +87,7 @@ class RigidBody: Owner
     float damping = 0.5f;
     float stopThreshold = 0.15f; //0.15f
     float stopThresholdPV = 0.0f; //0.01f
+    float stopThresholdAngular = 0.2f;
 
     bool useOwnGravity = false;
     Vector3f gravity = Vector3f(0, 0, 0);
@@ -226,7 +227,7 @@ class RigidBody: Owner
         }
 
         if (enableRotation)
-        if (angularVelocity.length > 0.2f /* || numContacts < 3 */) //stopThreshold
+        if (angularVelocity.length > stopThresholdAngular /* || numContacts < 3 */) //stopThreshold
         {
             orientation += 0.5f * Quaternionf(angularVelocity, 0.0f) * orientation * dt;
             orientation.normalize();

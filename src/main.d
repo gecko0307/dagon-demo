@@ -30,6 +30,7 @@ module main;
 import std.stdio;
 import std.math;
 import std.random;
+import std.algorithm;
 
 import dagon;
 
@@ -88,13 +89,23 @@ class TestScene: BaseScene3D
     TextureAsset aTexCarDiffuse;
     TextureAsset aTexCarNormal;
     
+    TextureAsset aTexCarHeadlightsDiffuse;
+    TextureAsset aTexCarTyreDiffuse;
+    TextureAsset aTexCarTyreNormal;
+    
     OBJAsset aCastle;
     OBJAsset aImrod;
     OBJAsset aCrate;
     OBJAsset aSphere;
     
-    OBJAsset aCar;
-    OBJAsset aWheel;
+    OBJAsset aCarPaintedParts;
+    OBJAsset aCarChromeParts;
+    OBJAsset aCarPlasticParts;
+    OBJAsset aCarGlassParts;
+    OBJAsset aCarLightsFront;
+    OBJAsset aCarLightsBack;
+    OBJAsset aCarDisk;
+    OBJAsset aCarTyre;
     
     IQMAsset iqm;
     
@@ -197,14 +208,34 @@ class TestScene: BaseScene3D
         iqm = New!IQMAsset(assetManager);
         addAsset(iqm, "data/iqm/mrfixit.iqm");
         
-        aCar = New!OBJAsset(assetManager);
-        addAsset(aCar, "data/car/jeep.obj");
+        aCarPaintedParts = New!OBJAsset(assetManager);
+        addAsset(aCarPaintedParts, "data/car/ac-cobra-painted-parts.obj");
         
-        aTexCarDiffuse = addTextureAsset("data/car/jeep.png");
-        aTexCarNormal = addTextureAsset("data/car/jeep-normal.png");
-
-        aWheel = New!OBJAsset(assetManager);
-        addAsset(aWheel, "data/car/wheel.obj");
+        aCarChromeParts = New!OBJAsset(assetManager);
+        addAsset(aCarChromeParts, "data/car/ac-cobra-chrome-parts.obj");
+        
+        aCarPlasticParts = New!OBJAsset(assetManager);
+        addAsset(aCarPlasticParts, "data/car/ac-cobra-plastic-parts.obj");
+        
+        aCarGlassParts = New!OBJAsset(assetManager);
+        addAsset(aCarGlassParts, "data/car/ac-cobra-glass-parts.obj");
+        
+        aCarLightsFront = New!OBJAsset(assetManager);
+        addAsset(aCarLightsFront, "data/car/ac-cobra-lights-front.obj");
+        
+        aCarLightsBack = New!OBJAsset(assetManager);
+        addAsset(aCarLightsBack, "data/car/ac-cobra-lights-back.obj");
+        
+        aCarDisk = New!OBJAsset(assetManager);
+        addAsset(aCarDisk, "data/car/ac-cobra-disk.obj");
+        
+        aCarTyre = New!OBJAsset(assetManager);
+        addAsset(aCarTyre, "data/car/ac-cobra-tyre.obj");
+        
+        aTexCarDiffuse = addTextureAsset("data/car/ac-cobra-painted-parts.png");
+        aTexCarHeadlightsDiffuse = addTextureAsset("data/car/ac-cobra-lights-front.png");
+        aTexCarTyreDiffuse = addTextureAsset("data/car/ac-cobra-wheel.png");
+        aTexCarTyreNormal = addTextureAsset("data/car/ac-cobra-wheel-normal.png");
     }
 
     override void onAllocate()
@@ -242,10 +273,10 @@ class TestScene: BaseScene3D
         auto matDefault = createMaterial(matBackend);
         matDefault.roughness = 0.5f;
         matDefault.metallic = 0.0f;
+        matDefault.culling = false;
         
         auto matImrod = createMaterial(matBackend);
         matImrod.diffuse = aTexImrodDiffuse.texture;
-        //matImrod.diffuse = Color4f(0.5,0.5,0.5,1);
         matImrod.normal = aTexImrodNormal.texture;
         matImrod.roughness = 0.5f;
         matImrod.metallic = 0.0f;
@@ -262,7 +293,7 @@ class TestScene: BaseScene3D
         mGround.diffuse = aTexStone2Diffuse.texture;
         mGround.normal = aTexStone2Normal.texture;
         mGround.height = aTexStone2Height.texture;
-        mGround.roughness = 0.8f;
+        mGround.roughness = 0.5f;
         mGround.parallax = ParallaxSimple;
         
         auto mCrate = createMaterial(matBackend);
@@ -272,14 +303,42 @@ class TestScene: BaseScene3D
         
         auto matCar = createMaterial(matBackend);
         matCar.diffuse = aTexCarDiffuse.texture;
-        matCar.normal = aTexCarNormal.texture;
-        matCar.roughness = 0.01f;
-        matCar.metallic = 1.0f;
+        matCar.roughness = 0.0f;
+        matCar.metallic = 0.5f;
+        matCar.culling = false;
+        
+        auto matChrome = createMaterial(matBackend);
+        matChrome.diffuse = Color4f(0.9f, 1.0f, 1.0f, 1.0f);
+        matChrome.roughness = 0.0f;
+        matChrome.metallic = 0.98f;
+        
+        auto matPlastic = createMaterial(matBackend);
+        matPlastic.diffuse = Color4f(0.2f, 0.2f, 0.2f, 1.0f);
+        matPlastic.roughness = 0.5f;
+        matPlastic.metallic = 0.0f;
+        
+        auto matGlass = createMaterial(matBackend);
+        matGlass.diffuse = Color4f(0.0f, 0.0f, 0.0f, 0.3f);
+        matGlass.roughness = 0.5f;
+        matGlass.metallic = 0.0f;
+        matGlass.blending = Transparent;
+        
+        auto matGlass2 = createMaterial(matBackend);
+        matGlass2.diffuse = aTexCarHeadlightsDiffuse.texture;
+        matGlass2.roughness = 0.001f;
+        matGlass2.metallic = 0.0f;
+        matGlass2.blending = Transparent;
+        
+        auto matGlass3 = createMaterial(matBackend);
+        matGlass3.diffuse = Color4f(0.3f, 0.0f, 0.0f, 0.5f);
+        matGlass3.roughness = 0.001f;
+        matGlass3.metallic = 0.0f;
+        matGlass3.blending = Transparent;
         
         auto matWheel = createMaterial(matBackend);
-        matWheel.diffuse = aTexCarDiffuse.texture;
-        matWheel.normal = aTexCarNormal.texture;
-        matWheel.roughness = 0.2f;
+        matWheel.diffuse = aTexCarTyreDiffuse.texture;
+        matWheel.normal = aTexCarTyreNormal.texture;
+        matWheel.roughness = 0.6f;
         matWheel.metallic = 0.0f;
         
         auto matSky = createMaterial(skyMatBackend);
@@ -353,27 +412,52 @@ class TestScene: BaseScene3D
             RigidBodyController rbc = New!RigidBodyController(eCrate, bCrate);
             eCrate.controller = rbc;
             world.addShapeComponent(bCrate, gCrate, Vector3f(0.0f, 0.0f, 0.0f), 10.0f);
-        }        
-        
+        }
+
         // Create car
         Entity eCar = createEntity3D();
-        eCar.drawable = aCar.mesh;
+        eCar.drawable = aCarPaintedParts.mesh;
         eCar.material = matCar;
         eCar.position = Vector3f(30.0f, 5.0f, 0.0f);
+        
+        Entity eCarChrome = createEntity3D(eCar);
+        eCarChrome.drawable = aCarChromeParts.mesh;
+        eCarChrome.material = matChrome;
+        
+        Entity eCarPlastic = createEntity3D(eCar);
+        eCarPlastic.drawable = aCarPlasticParts.mesh;
+        eCarPlastic.material = matPlastic;
+        
+        Entity eCarGlass = createEntity3D(eCar);
+        eCarGlass.drawable = aCarGlassParts.mesh;
+        eCarGlass.material = matGlass;
+        
+        Entity eCarLightsFront = createEntity3D(eCar);
+        eCarLightsFront.drawable = aCarLightsFront.mesh;
+        eCarLightsFront.material = matGlass2;
+        
+        Entity eCarLightsBack = createEntity3D(eCar);
+        eCarLightsBack.drawable = aCarLightsBack.mesh;
+        eCarLightsBack.material = matGlass3;
 
-        auto gBox = New!GeomBox(world, Vector3f(2.0f, 1.0f, 3.0f));
+        auto gBox = New!GeomBox(world, Vector3f(1.3f, 0.6f, 2.8f));
         auto b = world.addDynamicBody(Vector3f(0, 0, 0), 0.0f);
-        b.bounce = 1.2f;
+        b.damping = 0.5f;
         vehicle = New!VehicleController(eCar, b, world);
         eCar.controller = vehicle;
-        world.addShapeComponent(b, gBox, Vector3f(0.0f, 1.5f, 0.0f), 2000.0f);
-        b.centerOfMass.y = 0.0f; //-0.25f; //-0.5f; // Artifically lowered center of mass
+        world.addShapeComponent(b, gBox, Vector3f(0.0f, 0.8f, 0.0f), 1200.0f);
+        b.centerOfMass.y = 0.1f; // Artifically lowered center of mass
+        b.centerOfMass.z = 0.25f;
         
         foreach(i, ref w; eWheels)
         {
             w = createEntity3D(eCar);
-            w.drawable = aWheel.mesh;
-            w.material = matWheel;
+            w.drawable = aCarDisk.mesh;
+            w.material = matChrome;
+            
+            auto t = createEntity3D(w);
+            t.drawable = aCarTyre.mesh;
+            t.material = matWheel;
         }
         
         carView = New!CarView(eventManager, vehicle, assetManager);
@@ -484,10 +568,20 @@ class TestScene: BaseScene3D
         // Toggle mouse look / cursor lock
         if (button == MB_LEFT)
         {
-            if (fpview.active)
-                fpview.active = false;
+            if (!carViewEnabled)
+            {
+                if (fpview.active)
+                    fpview.active = false;
+                else
+                    fpview.active = true;
+            }
             else
-                fpview.active = true;
+            {
+                if (carView.active)
+                    carView.active = false;
+                else
+                    carView.active = true;
+            }
         }
         
         // Create a light ball
@@ -495,7 +589,7 @@ class TestScene: BaseScene3D
         {
             Vector3f pos = fpview.camera.position + fpview.camera.characterMatrix.forward * -2.0f + Vector3f(0, 1, 0);
             Color4f color = lightColors[uniform(0, 9)];
-            createLightBall(pos, color, 5.0f, lightBallRadius, 4.0f);
+            createLightBall(pos, color, 2.0f, lightBallRadius, 8.0f);
         }
     }
     
@@ -546,10 +640,12 @@ class TestScene: BaseScene3D
 
     void updateVehicle(double dt)
     {
-        float accelerate = 50.0f + 10.0f * vehicle.speed;
+        float accelerate = 50.0f;
     
         if (eventManager.keyPressed[KEY_Z])
             vehicle.accelerateForward(accelerate);
+        else if (eventManager.keyPressed[KEY_X])
+            vehicle.accelerateBackward(accelerate);
     
         if (carViewEnabled)
         {
@@ -562,7 +658,7 @@ class TestScene: BaseScene3D
                 
             float jAxis = eventManager.joystickAxis(SDL_CONTROLLER_AXIS_LEFTX);
             
-            float steering = 20.0f * abs(1.0f / vehicle.speed);
+            float steering = min(45.0f * abs(1.0f / max(vehicle.speed, 0.01f)), 5.0f);
 
             if (eventManager.keyPressed[KEY_A])
                 vehicle.steer(-steering);

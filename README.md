@@ -26,7 +26,12 @@ Under Windows you can hide console using `win32` configuration:
 Controls
 --------
 LMB enables mouse look, WASD keys are used to move and strafe, spacebar - to jump.
-Press enter to get in the car, RMB to create a light ball.
+
+Press Enter to get in the car, RMB to create a light ball. Press arrow keys rotate the sun (change daytime).
+
+While in the car, press W/S to accelerate forward/backward, A/S to steer, Enter to get out.
+
+Press Escape or close the window to exit the application.
 
 License
 -------

@@ -28,6 +28,7 @@ DEALINGS IN THE SOFTWARE.
 module vehicle;
 
 import std.math;
+import std.algorithm;
 
 import dagon;
 
@@ -60,6 +61,8 @@ class Wheel: Owner
     float rollSpeed;
     bool front;
     bool isDrifting;
+    bool brake;
+    bool handbrake;
 
     Matrix4x4f transformation;
 
@@ -68,13 +71,13 @@ class Wheel: Owner
         super(o);
         suspPosition = pos;
         forcePosition = Vector3f(0.0f, 0.0f, 0.0f);
-        radius = 0.6f;
-        suspStiffness = 35000.0f; //50000.0f;
+        radius = 0.55f;
+        suspStiffness = 15000.0f;
         suspDamping = 2000.0f;
         suspCompression = 0.0f;
         suspLength = 0.0f;
         suspLengthPrev = 0.0f;
-        suspMaxLength = 0.8f; //0.6f;
+        suspMaxLength = 0.7f;
         steeringAngle = 0.0f;
         torque = 0.0f;
         position = suspPosition - Vector3f(0.0f, suspMaxLength, 0.0f);
@@ -83,10 +86,12 @@ class Wheel: Owner
         dirCoef = 1.0f;
         this.powered = powered;
         this.steered = steered;
-        maxSteeringAngle = 50.0f;
+        maxSteeringAngle = 45.0f;
         rollSpeed = 0.0f;
         this.front = front;
         isDrifting = false;
+        brake = false;
+        handbrake = false;
     }
 }
 
@@ -97,8 +102,8 @@ class VehicleController: EntityController
     Wheel[4] wheels; // TODO: use dynamic array and let the user create wheels
     float torqueAcc;
     bool brake = false;
-    float maxForwardTorque = 30000.0f; //30000.0f;
-    float maxBackwardTorque = 15000.0f;
+    float maxForwardTorque = 20000.0f;
+    float maxBackwardTorque = 10000.0f;
     float speed = 0.0f;
 
     this(Entity e, RigidBody b, PhysicsWorld w)
@@ -111,12 +116,12 @@ class VehicleController: EntityController
         b.position = e.position;
         b.orientation = e.rotation;
 
-        wheels[0] = New!Wheel(Vector3f(-1.2f, 1,  2.2f), true, true, true, this);
+        wheels[0] = New!Wheel(Vector3f(-1.25f, 1,  2.0f), false, true, true, this);
         wheels[0].dirCoef = -1.0f;
-        wheels[1] = New!Wheel(Vector3f( 1.2f, 1,  2.2f), true, true, true, this);
-        wheels[2] = New!Wheel(Vector3f(-1.2f, 1, -2.0f), true, false, false, this);
+        wheels[1] = New!Wheel(Vector3f( 1.25f, 1,  2.0f), false, true, true, this);
+        wheels[2] = New!Wheel(Vector3f(-1.25f, 1, -1.8f), true, false, false, this);
         wheels[2].dirCoef = -1.0f;
-        wheels[3] = New!Wheel(Vector3f( 1.2f, 1, -2.0f), true, false, false, this);
+        wheels[3] = New!Wheel(Vector3f( 1.25f, 1, -1.8f), true, false, false, this);
 
         torqueAcc = 0.0f;
     }
@@ -128,11 +133,6 @@ class VehicleController: EntityController
         else
             torqueAcc += t;
 
-        if (isMovingBackward)
-            brake = true;
-        else
-            brake = false;
-
         if (torqueAcc > maxForwardTorque)
             torqueAcc = maxForwardTorque;
 
@@ -143,7 +143,16 @@ class VehicleController: EntityController
  
         foreach(i, w; wheels)
         if (w.powered)
+        {
             w.torque = torqueAcc / cast(float)numPoweredWheels;
+        }
+        else
+        {
+            if (isMovingBackward)
+                w.brake = true;
+            else
+                w.brake = false;
+        }
     }
 
     void accelerateBackward(float t)
@@ -153,11 +162,6 @@ class VehicleController: EntityController
         else
             torqueAcc -= t;
 
-        if (isMovingForward)
-            brake = true;
-        else
-            brake = false;
-
         if (torqueAcc < -maxBackwardTorque)
             torqueAcc = -maxBackwardTorque;
 
@@ -165,10 +169,19 @@ class VehicleController: EntityController
         foreach(i, w; wheels)
         if (w.powered)
             numPoweredWheels++;
- 
+            
         foreach(i, w; wheels)
         if (w.powered)
+        {
             w.torque = torqueAcc / cast(float)numPoweredWheels;
+        }
+        else
+        {
+            if (isMovingBackward)
+                w.brake = false;
+            else
+                w.brake = true;
+        }
     }
 
     void steer(float angle)
@@ -177,14 +190,14 @@ class VehicleController: EntityController
         if (w.steered)
         {
             if (w.front)
+            {
                 w.steeringAngle += angle;
-            else
-                w.steeringAngle += -angle;
-
-            if (w.steeringAngle > w.maxSteeringAngle)
-                w.steeringAngle = w.maxSteeringAngle;
-            else if (w.steeringAngle < -w.maxSteeringAngle)
-                w.steeringAngle = -w.maxSteeringAngle;
+            }
+            
+            if (w.steeringAngle > w.maxSteeringAngle + w.dirCoef * 4.0f)
+                w.steeringAngle = w.maxSteeringAngle + w.dirCoef * 4.0f;
+            else if (w.steeringAngle < -w.maxSteeringAngle - w.dirCoef * 4.0f)
+                w.steeringAngle = -w.maxSteeringAngle - w.dirCoef * 4.0f;
         }
     }
 
@@ -198,6 +211,12 @@ class VehicleController: EntityController
             if (w.steeringAngle < 0.0f)
                 w.steeringAngle += 2.0f;
         }
+    }
+    
+    void handbrake(bool value)
+    {
+        foreach(i, w; wheels)
+            w.handbrake = value;
     }
 
     bool downRaycast(Vector3f pos, Vector3f down, out float height, out Vector3f n)
@@ -240,7 +259,7 @@ class VehicleController: EntityController
         float invSteepness = clamp(dot(groundNormal, Vector3f(0, 1, 0)), 0.0f, 1.0f);
         
         w.isDrifting = false;
-
+        
         if (suspToGround > (w.suspMaxLength + w.radius)) // wheel is in air
         {
             w.suspCompression = 0.0f;
@@ -254,6 +273,7 @@ class VehicleController: EntityController
         {
             w.suspLengthPrev = w.suspLength;
             w.suspLength = suspToGround - w.radius;
+            if (w.suspLength < 0.3f) w.suspLength = 0.3f;
             w.suspCompression = w.suspMaxLength - w.suspLength;
             w.position = w.suspPosition + Vector3f(0.0f, -w.suspLength, 0.0f);
 
@@ -273,21 +293,38 @@ class VehicleController: EntityController
             Vector3f sideDir = w.transformation.right * w.dirCoef;
 
             float forwardForce = w.torque / w.radius;
+            
+            float forwardSpeed = dot(rbody.linearVelocity, w.transformation.forward);
 
             Vector3f radiusVector = w.forcePosition - rbody.position;
             Vector3f pointVelocity = rbody.linearVelocity + cross(rbody.angularVelocity, radiusVector);
             float sideSpeed = dot(pointVelocity, sideDir);
-            float sideFrictionForce = -sideSpeed * rbody.mass * 0.4f; //0.9f;
-
+            
+            float frictionCoef = 0.6f;
+            if (sideSpeed > 0.05f)
+                frictionCoef = 0.6f;
+            if (sideSpeed > 0.8f)
+                frictionCoef = 0.4f;
+            if (sideSpeed > 0.9f)
+                frictionCoef = 0.3f;
+            if (sideSpeed > 1.0f)
+                frictionCoef = 0.2f;
+            if (sideSpeed > 2.0f)
+                frictionCoef = 0.1f;
+            if (sideSpeed > 3.0f)
+                frictionCoef = 0.05f;
+            
+            float lateralForce = sideSpeed * normalForce * frictionCoef;
+            
             rbody.applyForceAtPos(forwardDir * forwardForce, w.forcePosition);
-            rbody.applyForceAtPos(sideDir * sideFrictionForce, w.forcePosition);
+            rbody.applyForceAtPos(-sideDir * lateralForce, w.forcePosition);
 
             inAir = false;
 
             w.isDrifting = abs(sideSpeed) > 12.0f;
         }
-
-        if (!brake)
+        
+        if (!w.brake && !w.handbrake)
         {
             if (!inAir)
             {
@@ -298,11 +335,9 @@ class VehicleController: EntityController
             {
                 if (w.powered && abs(w.torque))
                     w.rollSpeed = w.torque * dt;
-            
-                w.rollSpeed *= 0.99f;
             }
             
-            if (abs(w.rollSpeed) < 0.1f)
+            if (abs(w.rollSpeed) < 0.2f)
                 w.rollSpeed = 0.0f;
 
             w.roll += radtodeg(w.rollSpeed) * dt;
@@ -351,9 +386,6 @@ class VehicleController: EntityController
             torqueAcc -= 0.01f;
         else if (torqueAcc < 0.0f)
             torqueAcc += 0.01f;
-            
-        rbody.centerOfMass.z = -rbody.linearVelocity.z * 0.00001f; //-torqueAcc * 0.00001f;
-        rbody.centerOfMass.x = -rbody.linearVelocity.x * 0.00001f;
         
         speed = rbody.linearVelocity.length;
     }
@@ -374,21 +406,58 @@ class CarView: EventListener, View
     Vector3f offset;
     Matrix4x4f _trans;
     Matrix4x4f _invTrans;
+    
+    int prevMouseX;
+    int prevMouseY;
+    
+    bool _active = true;
 
     this(EventManager emngr, VehicleController vehicle, Owner owner)
     {
         super(emngr, owner);
 
         this.vehicle = vehicle;
-        offset = Vector3f(0.0f, 0.0f, -6.0f);
+        offset = Vector3f(0.0f, 0.0f, -1.0f);
         position = vehicle.position + offset;
+    }
+    
+    void active(bool v)
+    {
+        if (v)
+        {
+            prevMouseX = eventManager.mouseX;
+            prevMouseY = eventManager.mouseY;
+            SDL_SetRelativeMouseMode(1);
+        }
+        else
+        {
+            SDL_SetRelativeMouseMode(0);
+            eventManager.setMouse(prevMouseX, prevMouseY);
+        }
+        
+        _active = v;
+    }
+    
+    bool active()
+    {
+        return _active;
     }
 
     void update(double dt)
     {
         processEvents();
-
-        Vector3f tp = vehicle.position + vehicle.rotation.rotate(offset);
+        
+        if (_active)
+        {  
+            float turn_m =  (eventManager.mouseRelX) * 0.1f;
+            float pitch_m = (eventManager.mouseRelY) * 0.1f;
+            
+            auto q = rotationQuaternion!float(Axis.y, turn_m * dt) * 
+                     rotationQuaternion!float(Axis.x, pitch_m * dt);
+            offset = q.rotate(offset);
+        }
+        
+        Vector3f tp = vehicle.position + vehicle.rotation.rotate(offset) * 8.0f;
         tp.y = vehicle.position.y + 3.0f;
         Vector3f d = tp - position;
         position += (d * 10.0f) * dt;
