@@ -144,7 +144,7 @@ class TestScene: BaseScene3D
     PostFilterLensDistortion lens;
     
     string helpTextFirstPerson = "Press <LMB> to switch mouse look, WASD to move, spacebar to jump, <RMB> to create a light, arrow keys to rotate the sun";
-    string helpTextVehicle = "Press W/S to accelerate forward/backward, A/D to steer, Enter to get out of the car";
+    string helpTextVehicle = "Press W/S to accelerate forward/backward, A/D to steer, <E> to get out of the car";
     
     TextLine helpText;
     TextLine infoText;
@@ -508,7 +508,7 @@ class TestScene: BaseScene3D
         eText2.position = Vector3f(16.0f, 60.0f, 0.0f);
         
         messageText = New!TextLine(aFontDroidSans14.font, 
-            "Press <Enter> to get in the car", 
+            "Press <E> to get in the car", 
             assetManager);
         messageText.color = Color4f(1.0f, 1.0f, 1.0f, 0.0f);
         
@@ -543,7 +543,7 @@ class TestScene: BaseScene3D
     {
         if (key == KEY_ESCAPE)
             exitApplication();
-        else if (key == KEY_RETURN)
+        else if (key == KEY_E)
         {
             if (carViewEnabled)
             {
