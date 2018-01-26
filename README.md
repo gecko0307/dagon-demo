@@ -20,6 +20,12 @@ Under Windows you can hide console using `win32` configuration:
 
 `dub build --config=win32`
 
+To get the best performance, you can do an optimized build:
+
+`dub build --build=release-nobounds`
+
+We recommend using LDC compiler.
+
 Controls
 --------
 LMB enables mouse look, WASD keys are used to move and strafe, spacebar - to jump.
