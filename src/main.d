@@ -69,6 +69,8 @@ BVHTree!Triangle meshBVH(Mesh[] meshes)
 class TestScene: BaseScene3D
 {
     FontAsset aFontDroidSans14;
+    
+    TextureAsset aEnvmap;
 
     TextureAsset aTexImrodDiffuse;
     TextureAsset aTexImrodNormal;
@@ -93,6 +95,8 @@ class TestScene: BaseScene3D
     TextureAsset aTexCarTyreDiffuse;
     TextureAsset aTexCarTyreNormal;
     
+    TextureAsset aTexColorTable;
+    
     OBJAsset aCastle;
     OBJAsset aImrod;
     OBJAsset aCrate;
@@ -111,12 +115,11 @@ class TestScene: BaseScene3D
     
     Entity eMrfixit;
     Actor actor;
-    
-    PBRClusteredBackend pbrMatBackend;
+
     ShadelessBackend shadelessMatBackend;
     SkyBackend skyMatBackend;
     float sunPitch = -45.0f;
-    float sunTurn = 0.0f;
+    float sunTurn = 10.0f;
     
     FirstPersonView fpview;
     CarView carView;
@@ -134,17 +137,21 @@ class TestScene: BaseScene3D
     BVHTree!Triangle bvh;
     bool haveBVH = false;
     
+    Entity eCar;
+    Entity eCarChrome;
+    Entity eCarPlastic;
+    Entity eCarGlass;
+    Entity eCarLightsFront;
+    Entity eCarLightsBack;
+    
     Entity[4] eWheels;
+    Entity[4] eTyres;
+    
     ParticleSystem psysLeft;
     ParticleSystem psysRight;
-    
-    Framebuffer fb;
-    Framebuffer fbAA;
-    PostFilterFXAA fxaa;
-    PostFilterLensDistortion lens;
-    
+
     string helpTextFirstPerson = "Press <LMB> to switch mouse look, WASD to move, spacebar to jump, <RMB> to create a light, arrow keys to rotate the sun";
-    string helpTextVehicle = "Press W/S to accelerate forward/backward, A/D to steer, <E> to get out of the car";
+    string helpTextVehicle = "Press W/S to accelerate forward/backward, A/D to steer, E to get out of the car";
     
     TextLine helpText;
     TextLine infoText;
@@ -166,6 +173,8 @@ class TestScene: BaseScene3D
 
     bool joystickButtonAPressed;
     bool joystickButtonBPressed;
+    
+    GenericMaterialBackend matBackend;
 
     this(SceneManager smngr)
     {
@@ -175,6 +184,8 @@ class TestScene: BaseScene3D
     override void onAssetsRequest()
     {
         aFontDroidSans14 = addFontAsset("data/font/DroidSans.ttf", 14);
+        
+        aEnvmap = addTextureAsset("data/hdri/tiber_island_1k.hdr");
     
         aTexImrodDiffuse = addTextureAsset("data/textures/imrod-diffuse.png");
         aTexImrodNormal = addTextureAsset("data/textures/imrod-normal.png");
@@ -236,6 +247,8 @@ class TestScene: BaseScene3D
         aTexCarHeadlightsDiffuse = addTextureAsset("data/car/ac-cobra-lights-front.png");
         aTexCarTyreDiffuse = addTextureAsset("data/car/ac-cobra-wheel.png");
         aTexCarTyreNormal = addTextureAsset("data/car/ac-cobra-wheel-normal.png");
+        
+        aTexColorTable = addTextureAsset("data/colortables/colortable4.png");
     }
 
     override void onAllocate()
@@ -247,6 +260,8 @@ class TestScene: BaseScene3D
         environment.atmosphericFog = true;
         environment.fogStart = 0.0f;
         environment.fogEnd = 300.0f;
+        environment.environmentMap = aEnvmap.texture;
+        environment.environmentMap.useLinearFiltering = false;
         
         // Create camera and view
         auto eCamera = createEntity3D();
@@ -255,87 +270,82 @@ class TestScene: BaseScene3D
         fpview.camera.turn = -90.0f;
         view = fpview;
         
-        // Create Framebuffers for post-processing
-        fb = New!Framebuffer(eventManager.windowWidth, eventManager.windowHeight, assetManager);
-        fbAA = New!Framebuffer(eventManager.windowWidth, eventManager.windowHeight, assetManager);
-        fxaa = New!PostFilterFXAA(fb, assetManager);
-        lens = New!PostFilterLensDistortion(fbAA, assetManager);
-
+        // Post-processing settings
+        hdr.tonemapFunction = TonemapFunction.Hable;
+        hdr.colorTable = aTexColorTable.texture;
+        fxaa.enabled = true;
+        
         // Create material backends
-        pbrMatBackend = New!PBRClusteredBackend(lightManager, assetManager);
-        pbrMatBackend.shadowMap = shadowMap;
         shadelessMatBackend = New!ShadelessBackend(assetManager);
         skyMatBackend = New!SkyBackend(assetManager);
         
-        GenericMaterialBackend matBackend = pbrMatBackend;
-        
         // Create materials
-        auto matDefault = createMaterial(matBackend);
-        matDefault.roughness = 0.5f;
+        auto matDefault = createMaterial();
+        matDefault.roughness = 0.9f;
         matDefault.metallic = 0.0f;
         matDefault.culling = false;
         
-        auto matImrod = createMaterial(matBackend);
+        auto matImrod = createMaterial();
         matImrod.diffuse = aTexImrodDiffuse.texture;
         matImrod.normal = aTexImrodNormal.texture;
-        matImrod.roughness = 0.5f;
+        matImrod.roughness = 0.2f;
         matImrod.metallic = 0.0f;
 
-        auto mStone = createMaterial(matBackend);
+        auto mStone = createMaterial();
         mStone.diffuse = aTexStoneDiffuse.texture;
         mStone.normal = aTexStoneNormal.texture;
         mStone.height = aTexStoneHeight.texture;
-        mStone.roughness = 0.9f;
+        mStone.roughness = 1.0f;
         mStone.parallax = ParallaxSimple; //also try ParallaxOcclusionMapping
         mStone.metallic = 0.0f;
         
-        auto mGround = createMaterial(matBackend);
+        auto mGround = createMaterial();
         mGround.diffuse = aTexStone2Diffuse.texture;
         mGround.normal = aTexStone2Normal.texture;
         mGround.height = aTexStone2Height.texture;
-        mGround.roughness = 0.5f;
+        mGround.roughness = 0.6f;
         mGround.parallax = ParallaxSimple;
         
-        auto mCrate = createMaterial(matBackend);
+        auto mCrate = createMaterial();
         mCrate.diffuse = aTexCrateDiffuse.texture;
         mCrate.roughness = 0.9f;
         mCrate.metallic = 0.0f;
         
-        auto matCar = createMaterial(matBackend);
+        auto matCar = createMaterial();
         matCar.diffuse = aTexCarDiffuse.texture;
-        matCar.roughness = 0.0f;
-        matCar.metallic = 0.5f;
+        matCar.roughness = 0.2f;
+        matCar.metallic = 0.0f;
         matCar.culling = false;
         
-        auto matChrome = createMaterial(matBackend);
-        matChrome.diffuse = Color4f(0.9f, 1.0f, 1.0f, 1.0f);
-        matChrome.roughness = 0.0f;
-        matChrome.metallic = 0.98f;
+        auto matChrome = createMaterial();
+        matChrome.diffuse = Color4f(0.9f, 0.9f, 0.9f, 1.0f);
+        matChrome.roughness = 0.001f;
+        matChrome.metallic = 1.0f;
         
-        auto matPlastic = createMaterial(matBackend);
+        auto matPlastic = createMaterial();
         matPlastic.diffuse = Color4f(0.2f, 0.2f, 0.2f, 1.0f);
-        matPlastic.roughness = 0.5f;
+        matPlastic.roughness = 0.8f;
         matPlastic.metallic = 0.0f;
         
-        auto matGlass = createMaterial(matBackend);
+        auto matGlass = createMaterial();
         matGlass.diffuse = Color4f(0.0f, 0.0f, 0.0f, 0.3f);
-        matGlass.roughness = 0.5f;
+        matGlass.roughness = 0.01f;
         matGlass.metallic = 0.0f;
         matGlass.blending = Transparent;
         
-        auto matGlass2 = createMaterial(matBackend);
+        auto matGlass2 = createMaterial();
         matGlass2.diffuse = aTexCarHeadlightsDiffuse.texture;
-        matGlass2.roughness = 0.001f;
+        matGlass2.roughness = 0.01f;
         matGlass2.metallic = 0.0f;
         matGlass2.blending = Transparent;
         
-        auto matGlass3 = createMaterial(matBackend);
+        auto matGlass3 = createMaterial();
         matGlass3.diffuse = Color4f(0.3f, 0.0f, 0.0f, 0.5f);
-        matGlass3.roughness = 0.001f;
+        matGlass3.roughness = 0.01f;
         matGlass3.metallic = 0.0f;
         matGlass3.blending = Transparent;
         
-        auto matWheel = createMaterial(matBackend);
+        auto matWheel = createMaterial();
         matWheel.diffuse = aTexCarTyreDiffuse.texture;
         matWheel.normal = aTexCarTyreNormal.texture;
         matWheel.roughness = 0.6f;
@@ -415,28 +425,28 @@ class TestScene: BaseScene3D
         }
 
         // Create car
-        Entity eCar = createEntity3D();
+        eCar = createEntity3D();
         eCar.drawable = aCarPaintedParts.mesh;
         eCar.material = matCar;
         eCar.position = Vector3f(30.0f, 5.0f, 0.0f);
         
-        Entity eCarChrome = createEntity3D(eCar);
+        eCarChrome = createEntity3D(eCar);
         eCarChrome.drawable = aCarChromeParts.mesh;
         eCarChrome.material = matChrome;
         
-        Entity eCarPlastic = createEntity3D(eCar);
+        eCarPlastic = createEntity3D(eCar);
         eCarPlastic.drawable = aCarPlasticParts.mesh;
         eCarPlastic.material = matPlastic;
         
-        Entity eCarGlass = createEntity3D(eCar);
+        eCarGlass = createEntity3D(eCar);
         eCarGlass.drawable = aCarGlassParts.mesh;
         eCarGlass.material = matGlass;
         
-        Entity eCarLightsFront = createEntity3D(eCar);
+        eCarLightsFront = createEntity3D(eCar);
         eCarLightsFront.drawable = aCarLightsFront.mesh;
         eCarLightsFront.material = matGlass2;
         
-        Entity eCarLightsBack = createEntity3D(eCar);
+        eCarLightsBack = createEntity3D(eCar);
         eCarLightsBack.drawable = aCarLightsBack.mesh;
         eCarLightsBack.material = matGlass3;
 
@@ -455,15 +465,15 @@ class TestScene: BaseScene3D
             w.drawable = aCarDisk.mesh;
             w.material = matChrome;
             
-            auto t = createEntity3D(w);
-            t.drawable = aCarTyre.mesh;
-            t.material = matWheel;
+            eTyres[i] = createEntity3D(w);
+            eTyres[i].drawable = aCarTyre.mesh;
+            eTyres[i].material = matWheel;
         }
         
         carView = New!CarView(eventManager, vehicle, assetManager);
         carViewEnabled = false;
         
-        auto mParticlesDust = createMaterial(shadelessMatBackend); // TODO: a specialized particle material backend
+        auto mParticlesDust = createMaterial(); //createMaterial(shadelessMatBackend); // TODO: a specialized particle material backend
         mParticlesDust.diffuse = aTexParticleDust.texture;
         mParticlesDust.blending = Transparent;
         mParticlesDust.depthWrite = false;
@@ -491,6 +501,9 @@ class TestScene: BaseScene3D
         psysLeft.maxInitialSpeed = 0.2f;
         psysLeft.scaleStep = Vector2f(1, 1);
         psysLeft.material = mParticlesDust;
+        
+        eParticlesLeft.visible = false;
+        eParticlesRights.visible = false;
 
         // Create HUD text
         helpText = New!TextLine(aFontDroidSans14.font, helpTextFirstPerson, assetManager);
@@ -515,6 +528,28 @@ class TestScene: BaseScene3D
         auto eMessage = createEntity2D();
         eMessage.drawable = messageText;
         eMessage.position = Vector3f(eventManager.windowWidth * 0.5f - messageText.width * 0.5f, eventManager.windowHeight * 0.5f, 0.0f);
+        
+        writeln(cast(int)log2(fmax(1280, 720)));
+    }
+    
+    void setCarMotionBlur(bool val)
+    {
+        eCar.useMotionBlur = val;
+        eCarChrome.useMotionBlur = val;
+        eCarPlastic.useMotionBlur = val;
+        eCarGlass.useMotionBlur = val;
+        eCarLightsFront.useMotionBlur = val;
+        eCarLightsBack.useMotionBlur = val;
+        
+        eWheels[0].useMotionBlur = val;
+        eWheels[1].useMotionBlur = val;
+        eWheels[2].useMotionBlur = val;
+        eWheels[3].useMotionBlur = val;
+        
+        eTyres[0].useMotionBlur = val;
+        eTyres[1].useMotionBlur = val;
+        eTyres[2].useMotionBlur = val;
+        eTyres[3].useMotionBlur = val;
     }
     
     override void onStart()
@@ -542,7 +577,10 @@ class TestScene: BaseScene3D
     override void onKeyDown(int key)
     {
         if (key == KEY_ESCAPE)
+        {
+            SDL_SetRelativeMouseMode(SDL_FALSE);
             exitApplication();
+        }
         else if (key == KEY_E)
         {
             if (carViewEnabled)
@@ -552,6 +590,7 @@ class TestScene: BaseScene3D
                 character.rbody.active = true;
                 character.rbody.position = vehicle.rbody.position + vehicle.rbody.orientation.rotate(Vector3f(1.0f, 0.0f, 0.0f).normalized) * 4.0f + Vector3f(0, 3, 0);
                 helpText.text = helpTextFirstPerson;
+                setCarMotionBlur(true);
             }
             else if (distance(fpview.cameraPosition, vehicle.rbody.position) <= 4.0f)
             {
@@ -559,6 +598,7 @@ class TestScene: BaseScene3D
                 carViewEnabled = true;
                 character.rbody.active = false;
                 helpText.text = helpTextVehicle;
+                setCarMotionBlur(false);
             }
         }
     }
@@ -589,7 +629,7 @@ class TestScene: BaseScene3D
         {
             Vector3f pos = fpview.camera.position + fpview.camera.characterMatrix.forward * -2.0f + Vector3f(0, 1, 0);
             Color4f color = lightColors[uniform(0, 9)];
-            createLightBall(pos, color, 2.0f, lightBallRadius, 8.0f);
+            createLightBall(pos, color, 1.0f, lightBallRadius, 5.0f);
         }
     }
     
@@ -601,6 +641,7 @@ class TestScene: BaseScene3D
         {
             auto mLightBall = createMaterial(shadelessMatBackend);
             mLightBall.diffuse = color;
+            mLightBall.emission = color;
                 
             auto eLightBall = createEntity3D();
             eLightBall.drawable = aSphere.mesh;
@@ -640,7 +681,7 @@ class TestScene: BaseScene3D
 
     void updateVehicle(double dt)
     {
-        float accelerate = 100.0f;
+        float accelerate = 1000.0f;
     
         if (eventManager.keyPressed[KEY_Z])
             vehicle.accelerateForward(accelerate);
@@ -745,28 +786,41 @@ class TestScene: BaseScene3D
     
     char[100] lightsText;
     
+    /*
     override void onRender()
     {
-        // Render shadow map
         renderShadows(&rc3d);
-        
-        // Render 3D objects to fb for FXAA
+
         fb.bind();
         prepareViewport();        
         renderEntities3D(&rc3d);
         fb.unbind();
-        
-        // Render fxaa quad to fbAA for lens distortion
+
+        fb.genMipmaps();
+        float lum = fb.averageLuminance();
+        if (!isNaN(lum))
+        {
+            float newExposure = 0.25f / clamp(lum, 0.001, 100000.0);
+            
+            float exposureDelta = newExposure - hdr.exposure;
+            hdr.exposure += exposureDelta * 4.0f * eventManager.deltaTime;
+        }
+
         fbAA.bind();
         prepareViewport();
-        fxaa.render(&rc2d);
+        hdr.render(&rc2d);
         fbAA.unbind();
         
-        // Render lens distortion quad and 2D objects to main framebuffer
+        //fbLens.bind();
+        //prepareViewport();
+        //fxaa.render(&rc2d);
+        //fbLens.unbind();
+        
         prepareViewport();
-        lens.render(&rc2d);
+        fxaa.render(&rc2d);
         renderEntities2D(&rc2d);
     }
+    */
     
     override void onRelease()
     {

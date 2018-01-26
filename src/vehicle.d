@@ -302,17 +302,17 @@ class VehicleController: EntityController
             
             float frictionCoef = 0.6f;
             if (sideSpeed > 0.05f)
-                frictionCoef = 0.6f;
-            if (sideSpeed > 0.8f)
-                frictionCoef = 0.4f;
-            if (sideSpeed > 0.9f)
                 frictionCoef = 0.3f;
-            if (sideSpeed > 1.0f)
+            if (sideSpeed > 0.8f)
                 frictionCoef = 0.2f;
-            if (sideSpeed > 2.0f)
+            if (sideSpeed > 0.9f)
                 frictionCoef = 0.1f;
-            if (sideSpeed > 3.0f)
+            if (sideSpeed > 1.0f)
                 frictionCoef = 0.05f;
+            if (sideSpeed > 2.0f)
+                frictionCoef = 0.025f;
+            if (sideSpeed > 3.0f)
+                frictionCoef = 0.01f;
             
             float lateralForce = sideSpeed * normalForce * frictionCoef;
             
@@ -335,6 +335,12 @@ class VehicleController: EntityController
             {
                 if (w.powered && abs(w.torque))
                     w.rollSpeed = w.torque * dt;
+
+                float maxRollSpeed = 40.0f;
+                if (w.rollSpeed > maxRollSpeed)
+                    w.rollSpeed = maxRollSpeed;
+                if (w.rollSpeed < -maxRollSpeed)
+                    w.rollSpeed = -maxRollSpeed;
             }
             
             if (abs(w.rollSpeed) < 0.2f)
