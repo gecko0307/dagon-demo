@@ -273,7 +273,9 @@ class TestScene: BaseScene3D
         // Post-processing settings
         hdr.tonemapFunction = TonemapFunction.Hable;
         hdr.colorTable = aTexColorTable.texture;
-        fxaa.enabled = true;
+        
+        addFilterFXAA();
+        //addFilterLensDistortion();
         
         // Create material backends
         shadelessMatBackend = New!ShadelessBackend(assetManager);
@@ -403,7 +405,7 @@ class TestScene: BaseScene3D
 
         // Create dmech geometries for dynamic objects
         gLightBall = New!GeomSphere(world, lightBallRadius);
-        auto gSphere = New!GeomEllipsoid(world, Vector3f(0.9f, 1.0f, 0.9f));
+        auto gSphere = New!GeomEllipsoid(world, Vector3f(0.5f, 1.0f, 0.5f));
         
         // Create character controller
         character = New!CharacterController(world, fpview.camera.position, 80.0f, gSphere, assetManager);
@@ -412,6 +414,7 @@ class TestScene: BaseScene3D
 
         // Create boxes
         auto gCrate = New!GeomBox(world, Vector3f(1.0f, 1.0f, 1.0f));
+        
         foreach(i; 0..5)
         {
             auto eCrate = createEntity3D();
@@ -473,7 +476,7 @@ class TestScene: BaseScene3D
         carView = New!CarView(eventManager, vehicle, assetManager);
         carViewEnabled = false;
         
-        auto mParticlesDust = createMaterial(); //createMaterial(shadelessMatBackend); // TODO: a specialized particle material backend
+        auto mParticlesDust = createMaterial(shadelessMatBackend); //createMaterial(shadelessMatBackend); // TODO: a specialized particle material backend
         mParticlesDust.diffuse = aTexParticleDust.texture;
         mParticlesDust.blending = Transparent;
         mParticlesDust.depthWrite = false;
@@ -668,14 +671,14 @@ class TestScene: BaseScene3D
         character.rotation.y = fpview.camera.turn;
         Vector3f forward = fpview.camera.characterMatrix.forward;
         Vector3f right = fpview.camera.characterMatrix.right; 
-        float speed = 8.0f;
+        float speed = 6.0f;
         Vector3f dir = Vector3f(0, 0, 0);
         if (eventManager.keyPressed[KEY_W]) dir += -forward;
         if (eventManager.keyPressed[KEY_S]) dir += forward;
         if (eventManager.keyPressed[KEY_A]) dir += -right;
         if (eventManager.keyPressed[KEY_D]) dir += right;
         character.move(dir.normalized, speed);
-        if (eventManager.keyPressed[KEY_SPACE]) character.jump(2.0f);
+        if (eventManager.keyPressed[KEY_SPACE]) character.jump(1.0f);
         character.update();
     }
 
@@ -785,42 +788,6 @@ class TestScene: BaseScene3D
     }
     
     char[100] lightsText;
-    
-    /*
-    override void onRender()
-    {
-        renderShadows(&rc3d);
-
-        fb.bind();
-        prepareViewport();        
-        renderEntities3D(&rc3d);
-        fb.unbind();
-
-        fb.genMipmaps();
-        float lum = fb.averageLuminance();
-        if (!isNaN(lum))
-        {
-            float newExposure = 0.25f / clamp(lum, 0.001, 100000.0);
-            
-            float exposureDelta = newExposure - hdr.exposure;
-            hdr.exposure += exposureDelta * 4.0f * eventManager.deltaTime;
-        }
-
-        fbAA.bind();
-        prepareViewport();
-        hdr.render(&rc2d);
-        fbAA.unbind();
-        
-        //fbLens.bind();
-        //prepareViewport();
-        //fxaa.render(&rc2d);
-        //fbLens.unbind();
-        
-        prepareViewport();
-        fxaa.render(&rc2d);
-        renderEntities2D(&rc2d);
-    }
-    */
     
     override void onRelease()
     {

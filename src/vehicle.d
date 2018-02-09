@@ -321,7 +321,7 @@ class VehicleController: EntityController
 
             inAir = false;
 
-            w.isDrifting = abs(sideSpeed) > 12.0f;
+            w.isDrifting = abs(sideSpeed) > 1.0f;
         }
         
         if (!w.brake && !w.handbrake)
@@ -463,7 +463,7 @@ class CarView: EventListener, View
             offset = q.rotate(offset);
         }
         
-        Vector3f tp = vehicle.position + vehicle.rotation.rotate(offset) * 8.0f;
+        Vector3f tp = vehicle.position + vehicle.rotation.rotate(offset) * 6.0f;
         tp.y = vehicle.position.y + 3.0f;
         Vector3f d = tp - position;
         position += (d * 10.0f) * dt;
