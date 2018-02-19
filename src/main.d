@@ -405,7 +405,7 @@ class TestScene: BaseScene3D
 
         // Create dmech geometries for dynamic objects
         gLightBall = New!GeomSphere(world, lightBallRadius);
-        auto gSphere = New!GeomEllipsoid(world, Vector3f(0.5f, 1.0f, 0.5f));
+        auto gSphere = New!GeomEllipsoid(world, Vector3f(0.9f, 1.0f, 0.9f));
         
         // Create character controller
         character = New!CharacterController(world, fpview.camera.position, 80.0f, gSphere, assetManager);
@@ -678,7 +678,7 @@ class TestScene: BaseScene3D
         if (eventManager.keyPressed[KEY_A]) dir += -right;
         if (eventManager.keyPressed[KEY_D]) dir += right;
         character.move(dir.normalized, speed);
-        if (eventManager.keyPressed[KEY_SPACE]) character.jump(1.0f);
+        if (eventManager.keyPressed[KEY_SPACE]) character.jump(2.0f);
         character.update();
     }
 
