@@ -693,14 +693,12 @@ class TestScene: BaseScene3D
     
         if (carViewEnabled)
         {
-            if (eventManager.keyPressed[KEY_W] || joystickButtonAPressed)
+            if (eventManager.keyPressed[KEY_W] || joystickButtonBPressed)
                 vehicle.accelerateForward(accelerate);
-            else if (eventManager.keyPressed[KEY_S] || joystickButtonBPressed)
+            else if (eventManager.keyPressed[KEY_S] || joystickButtonAPressed)
                 vehicle.accelerateBackward(accelerate);
             else
                 vehicle.brake = false;
-                
-            float jAxis = eventManager.joystickAxis(SDL_CONTROLLER_AXIS_LEFTX);
             
             float steering = min(45.0f * abs(1.0f / max(vehicle.speed, 0.01f)), 5.0f);
 
@@ -708,9 +706,10 @@ class TestScene: BaseScene3D
                 vehicle.steer(-steering);
             else if (eventManager.keyPressed[KEY_D])
                 vehicle.steer(steering);
-            else if (jAxis < -0.02f || jAxis > 0.02f)
+            else if (eventManager.joystickAvailable)
             {
-                vehicle.steer(jAxis * steering);
+                float jAxis = eventManager.joystickAxis(SDL_CONTROLLER_AXIS_LEFTX);
+                vehicle.setSteering(jAxis * 70.0f);
             }
             else
                 vehicle.resetSteering();

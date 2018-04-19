@@ -200,6 +200,23 @@ class VehicleController: EntityController
                 w.steeringAngle = -w.maxSteeringAngle - w.dirCoef * 4.0f;
         }
     }
+    
+    void setSteering(float angle)
+    {
+        foreach(i, w; wheels)
+        if (w.steered)
+        {
+            if (w.front)
+            {
+                w.steeringAngle = angle;
+            }
+            
+            if (w.steeringAngle > w.maxSteeringAngle + w.dirCoef * 4.0f)
+                w.steeringAngle = w.maxSteeringAngle + w.dirCoef * 4.0f;
+            else if (w.steeringAngle < -w.maxSteeringAngle - w.dirCoef * 4.0f)
+                w.steeringAngle = -w.maxSteeringAngle - w.dirCoef * 4.0f;
+        }
+    }
 
     void resetSteering()
     {

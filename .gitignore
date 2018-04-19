@@ -4,3 +4,4 @@
 dub\.selections\.json
 
 dagondemo
+*.exe
