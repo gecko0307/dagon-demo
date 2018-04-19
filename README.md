@@ -6,6 +6,8 @@ The demo shows how to load static and animated meshes, assign materials and text
 
 [![Screenshot1](/screenshots/main-thumb.jpg)](/screenshots/main.jpg)
 
+[https://www.youtube.com/watch?v=pxu9sxL9MIM](https://www.youtube.com/watch?v=pxu9sxL9MIM)
+
 Prerequisites
 -------------
 To run the demo, a number of libraries should be installed, namely SDL2 and Freetype 2.8.1. We provide libraries for 64-bit Windows.
@@ -32,7 +34,7 @@ LMB enables mouse look, WASD keys are used to move and strafe, spacebar - to jum
 
 Press E to get in the car, RMB to create a light ball. Press arrow keys rotate the sun (change daytime).
 
-While in the car, press W/S to accelerate forward/backward, A/S to steer, E to get out.
+While in the car, press W/S to accelerate forward/backward, A/S to steer, E to get out. You can also use a joystick or a driving wheel.
 
 Press Escape or close the window to exit the application.
 
