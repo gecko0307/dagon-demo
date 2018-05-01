@@ -96,6 +96,7 @@ class TestScene: BaseScene3D
     TextureAsset aTexCarTyreNormal;
     
     TextureAsset aTexColorTable;
+    TextureAsset aTexVignette;
     
     OBJAsset aCastle;
     OBJAsset aImrod;
@@ -249,6 +250,7 @@ class TestScene: BaseScene3D
         aTexCarTyreNormal = addTextureAsset("data/car/ac-cobra-wheel-normal.png");
         
         aTexColorTable = addTextureAsset("data/colortables/colortable4.png");
+        aTexVignette = addTextureAsset("data/vignette.png");
     }
 
     override void onAllocate()
@@ -273,6 +275,7 @@ class TestScene: BaseScene3D
         // Post-processing settings
         hdr.tonemapFunction = TonemapFunction.Hable;
         hdr.colorTable = aTexColorTable.texture;
+        hdr.vignette = aTexVignette.texture;
         
         addFilterFXAA();
         //addFilterLensDistortion();
