@@ -4,7 +4,7 @@ This is a test application that demonstrates features of [Dagon](https://github.
 
 The demo shows how to load static and animated meshes, assign materials and textures, create lights, integrate a physics engine ([dmech](https://github.com/gecko0307/dmech) is this case), render 2D text and much more. It includes game-ready character controller and vehicle. The demo can be used as a base for a first person shooter or a racing game.
 
-[![Screenshot1](/screenshots/main-thumb.jpg)](/screenshots/main.jpg)
+[![Screenshot1](/screenshots/car-thumb.jpg)](/screenshots/car.jpg)
 
 [https://www.youtube.com/watch?v=pxu9sxL9MIM](https://www.youtube.com/watch?v=pxu9sxL9MIM)
 
