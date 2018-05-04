@@ -118,7 +118,6 @@ class TestScene: BaseScene3D
     Actor actor;
 
     ShadelessBackend shadelessMatBackend;
-    SkyBackend skyMatBackend;
     float sunPitch = -45.0f;
     float sunTurn = 10.0f;
     
@@ -282,7 +281,6 @@ class TestScene: BaseScene3D
         
         // Create material backends
         shadelessMatBackend = New!ShadelessBackend(assetManager);
-        skyMatBackend = New!SkyBackend(assetManager);
         
         // Create materials
         auto matDefault = createMaterial();
@@ -356,16 +354,8 @@ class TestScene: BaseScene3D
         matWheel.roughness = 0.6f;
         matWheel.metallic = 0.0f;
         
-        auto matSky = createMaterial(skyMatBackend);
-        matSky.depthWrite = false;
-        
-        // Create skydome entity
-        eSky = createEntity3D();
-        eSky.attach = Attach.Camera;
-        eSky.castShadow = false;
-        eSky.material = matSky;
-        eSky.drawable = aSphere.mesh;
-        eSky.scaling = Vector3f(100.0f, 100.0f, 100.0f);
+        // Create sky entity
+        eSky = createSky();
 
         // Create castle entity
         Entity eCastle = createEntity3D();
