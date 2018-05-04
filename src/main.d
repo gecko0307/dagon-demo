@@ -261,7 +261,7 @@ class TestScene: BaseScene3D
         environment.useSkyColors = true;
         environment.atmosphericFog = true;
         environment.fogStart = 0.0f;
-        environment.fogEnd = 300.0f;
+        environment.fogEnd = 200.0f;
         environment.environmentMap = aEnvmap.texture;
         environment.environmentMap.useLinearFiltering = false;
         
@@ -323,8 +323,8 @@ class TestScene: BaseScene3D
         matCar.culling = false;
         
         auto matChrome = createMaterial();
-        matChrome.diffuse = Color4f(0.9f, 0.9f, 0.9f, 1.0f);
-        matChrome.roughness = 0.001f;
+        matChrome.diffuse = Color4f(1.0f, 1.0f, 1.0f, 1.0f);
+        matChrome.roughness = 0.1f;
         matChrome.metallic = 1.0f;
         
         auto matPlastic = createMaterial();
@@ -334,19 +334,19 @@ class TestScene: BaseScene3D
         
         auto matGlass = createMaterial();
         matGlass.diffuse = Color4f(0.0f, 0.0f, 0.0f, 0.3f);
-        matGlass.roughness = 0.01f;
+        matGlass.roughness = 0.1f;
         matGlass.metallic = 0.0f;
         matGlass.blending = Transparent;
         
         auto matGlass2 = createMaterial();
         matGlass2.diffuse = aTexCarHeadlightsDiffuse.texture;
-        matGlass2.roughness = 0.01f;
+        matGlass2.roughness = 0.1f;
         matGlass2.metallic = 0.0f;
         matGlass2.blending = Transparent;
         
         auto matGlass3 = createMaterial();
         matGlass3.diffuse = Color4f(0.3f, 0.0f, 0.0f, 0.5f);
-        matGlass3.roughness = 0.01f;
+        matGlass3.roughness = 0.1f;
         matGlass3.metallic = 0.0f;
         matGlass3.blending = Transparent;
         
@@ -458,7 +458,7 @@ class TestScene: BaseScene3D
 
         auto gBox = New!GeomBox(world, Vector3f(1.3f, 0.6f, 2.8f));
         auto b = world.addDynamicBody(Vector3f(0, 0, 0), 0.0f);
-        b.damping = 0.8f;
+        b.damping = 0.6f;
         vehicle = New!VehicleController(eCar, b, world);
         eCar.controller = vehicle;
         world.addShapeComponent(b, gBox, Vector3f(0.0f, 0.8f, 0.0f), 1200.0f);
@@ -606,6 +606,13 @@ class TestScene: BaseScene3D
                 helpText.text = helpTextVehicle;
                 setCarMotionBlur(false);
             }
+        }
+        else if (key == KEY_F1)
+        {
+            if (environment.environmentMap is null)
+                environment.environmentMap = aEnvmap.texture;
+            else
+                environment.environmentMap = null;
         }
     }
     
