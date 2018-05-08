@@ -275,6 +275,7 @@ class TestScene: BaseScene3D
         hdr.tonemapFunction = TonemapFunction.Hable;
         hdr.colorTable = aTexColorTable.texture;
         hdr.vignette = aTexVignette.texture;
+        glow.enabled = true;
         
         addFilterFXAA();
         //addFilterLensDistortion();
