@@ -276,6 +276,8 @@ class TestScene: BaseScene3D
         hdr.colorTable = aTexColorTable.texture;
         hdr.vignette = aTexVignette.texture;
         glow.enabled = true;
+        glow.brightness = 0.5;
+        glow.radius = 5;
         
         addFilterFXAA();
         //addFilterLensDistortion();
