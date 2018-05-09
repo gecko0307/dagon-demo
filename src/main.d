@@ -264,6 +264,8 @@ class TestScene: BaseScene3D
         environment.environmentMap = aEnvmap.texture;
         environment.environmentMap.useLinearFiltering = false;
         
+        shadowMap.shadowBrightness = 0.5f;
+        
         // Create camera and view
         auto eCamera = createEntity3D();
         eCamera.position = Vector3f(25.0f, 5.0f, 0.0f);
@@ -272,12 +274,13 @@ class TestScene: BaseScene3D
         view = fpview;
         
         // Post-processing settings
-        hdr.tonemapFunction = TonemapFunction.Hable;
-        hdr.colorTable = aTexColorTable.texture;
-        hdr.vignette = aTexVignette.texture;
+        hdr.tonemapper = Tonemapper.Hable;
+        motionBlur.enabled = true;
         glow.enabled = true;
         glow.brightness = 0.5;
         glow.radius = 5;
+        lut.texture = aTexColorTable.texture;
+        vignette.texture = aTexVignette.texture;
         
         addFilterFXAA();
         //addFilterLensDistortion();
