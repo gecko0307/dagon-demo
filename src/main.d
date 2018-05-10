@@ -264,7 +264,7 @@ class TestScene: BaseScene3D
         environment.environmentMap = aEnvmap.texture;
         environment.environmentMap.useLinearFiltering = false;
         
-        shadowMap.shadowBrightness = 0.5f;
+        shadowMap.shadowBrightness = 0.1f;
         
         // Create camera and view
         auto eCamera = createEntity3D();
