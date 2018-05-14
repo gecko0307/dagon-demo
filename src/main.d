@@ -161,14 +161,14 @@ class TestScene: BaseScene3D
   
     Color4f[9] lightColors = [
         Color4f(1, 1, 1, 1),
-        Color4f(1, 0, 0, 1),
-        Color4f(1, 0.5, 0, 1),
-        Color4f(1, 1, 0, 1),
-        Color4f(0, 1, 0, 1),
-        Color4f(0, 1, 0.5, 1),
-        Color4f(0, 1, 1, 1),
-        Color4f(0, 0.5, 1, 1),
-        Color4f(0, 0, 1, 1)
+        Color4f(1, 0.1, 0.1, 1),
+        Color4f(1, 0.5, 0.1, 1),
+        Color4f(1, 1, 0.1, 1),
+        Color4f(0.1, 1, 0.1, 1),
+        Color4f(0.1, 1, 0.5, 1),
+        Color4f(0.1, 1, 1, 1),
+        Color4f(0.1, 0.5, 1, 1),
+        Color4f(0.1, 0.1, 1, 1)
     ];
 
     bool joystickButtonAPressed;
@@ -261,8 +261,8 @@ class TestScene: BaseScene3D
         environment.atmosphericFog = true;
         environment.fogStart = 0.0f;
         environment.fogEnd = 10000.0f;
-        environment.environmentMap = aEnvmap.texture;
-        environment.environmentMap.useLinearFiltering = false;
+        //environment.environmentMap = aEnvmap.texture;
+        //environment.environmentMap.useLinearFiltering = false;
         
         shadowMap.shadowBrightness = 0.1f;
         
@@ -277,7 +277,7 @@ class TestScene: BaseScene3D
         hdr.tonemapper = Tonemapper.Hable;
         motionBlur.enabled = true;
         glow.enabled = true;
-        glow.brightness = 0.5;
+        glow.brightness = 0.6;
         glow.radius = 5;
         lut.texture = aTexColorTable.texture;
         vignette.texture = aTexVignette.texture;
@@ -638,7 +638,7 @@ class TestScene: BaseScene3D
         {
             Vector3f pos = fpview.camera.position + fpview.camera.characterMatrix.forward * -2.0f + Vector3f(0, 1, 0);
             Color4f color = lightColors[uniform(0, 9)];
-            createLightBall(pos, color, 5.0f, lightBallRadius, 5.0f);
+            createLightBall(pos, color, 1.0f, lightBallRadius, 5.0f);
         }
     }
     
@@ -651,6 +651,7 @@ class TestScene: BaseScene3D
             auto mLightBall = createMaterial(shadelessMatBackend);
             mLightBall.diffuse = color;
             mLightBall.emission = color;
+            mLightBall.energy = energy;
                 
             auto eLightBall = createEntity3D();
             eLightBall.drawable = aSphere.mesh;
