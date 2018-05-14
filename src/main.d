@@ -260,7 +260,7 @@ class TestScene: BaseScene3D
         environment.useSkyColors = true;
         environment.atmosphericFog = true;
         environment.fogStart = 0.0f;
-        environment.fogEnd = 200.0f;
+        environment.fogEnd = 10000.0f;
         environment.environmentMap = aEnvmap.texture;
         environment.environmentMap.useLinearFiltering = false;
         
@@ -281,9 +281,9 @@ class TestScene: BaseScene3D
         glow.radius = 5;
         lut.texture = aTexColorTable.texture;
         vignette.texture = aTexVignette.texture;
-        
-        addFilterFXAA();
-        //addFilterLensDistortion();
+        lensDistortion.enabled = true;
+        lensDistortion.dispersion = 0.2;
+        antiAliasing.enabled = true;
         
         // Create material backends
         shadelessMatBackend = New!ShadelessBackend(assetManager);
