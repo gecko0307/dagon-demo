@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2017 Timur Gafarov
+Copyright (c) 2017-2018 Timur Gafarov
 
 Boost Software License - Version 1.0 - August 17th, 2003
 Permission is hereby granted, free of charge, to any person or organization
@@ -82,6 +82,7 @@ class TestScene: BaseScene3D
     TextureAsset aTexStone2Diffuse;
     TextureAsset aTexStone2Normal;
     TextureAsset aTexStone2Height;
+    TextureAsset aTexStone2Roughness;
     
     TextureAsset aTexCrateDiffuse;
     
@@ -197,6 +198,7 @@ class TestScene: BaseScene3D
         aTexStone2Diffuse = addTextureAsset("data/textures/stone2-albedo.png");
         aTexStone2Normal = addTextureAsset("data/textures/stone2-normal.png");
         aTexStone2Height = addTextureAsset("data/textures/stone2-height.png");
+        aTexStone2Roughness = addTextureAsset("data/textures/stone2-roughness.png");
         
         aTexCrateDiffuse = addTextureAsset("data/textures/crate.png");
 
@@ -312,7 +314,7 @@ class TestScene: BaseScene3D
         mGround.diffuse = aTexStone2Diffuse.texture;
         mGround.normal = aTexStone2Normal.texture;
         mGround.height = aTexStone2Height.texture;
-        mGround.roughness = 0.6f;
+        mGround.roughness = aTexStone2Roughness.texture; //0.6f;
         mGround.parallax = ParallaxSimple;
         
         auto mCrate = createMaterial();
@@ -475,7 +477,7 @@ class TestScene: BaseScene3D
         carView = New!CarView(eventManager, vehicle, assetManager);
         carViewEnabled = false;
         
-        auto mParticlesDust = createMaterial(shadelessMatBackend); //createMaterial(shadelessMatBackend); // TODO: a specialized particle material backend
+        auto mParticlesDust = createMaterial(shadelessMatBackend); // TODO: a specialized particle material backend
         mParticlesDust.diffuse = aTexParticleDust.texture;
         mParticlesDust.blending = Transparent;
         mParticlesDust.depthWrite = false;
@@ -756,8 +758,6 @@ class TestScene: BaseScene3D
         world.update(dt);
         
         // Place camera to character controller position
-        // TODO: maybe make character controller an Entity, so that
-        // this could be done automatically with parenting mechanism?
         fpview.camera.position = character.rbody.position;
         
         // Sun control

@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2017 Timur Gafarov
+Copyright (c) 2017-2018 Timur Gafarov
 
 Boost Software License - Version 1.0 - August 17th, 2003
 Permission is hereby granted, free of charge, to any person or organization
@@ -49,6 +49,7 @@ import dmech.raycast;
  * velocity changes for a RigidBody. CharacterController is intended for generic action game
  * character movement.
  */
+ 
 class CharacterController: Owner
 {
     PhysicsWorld world;
@@ -117,7 +118,7 @@ class CharacterController: Owner
                 rbody.gravity = Vector3f(0.0f, -artificalGravity, 0.0f);
                 
             selfTurn = 0.0f;
-            if (onGround && floorBody /*&& speed == 0.0f && jSpeed == 0.0f */)
+            if (onGround && floorBody)
             {
                 Vector3f relPos = rbody.position - floorBody.position;
                 Vector3f rotVel = cross(floorBody.angularVelocity, relPos);
