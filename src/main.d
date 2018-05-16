@@ -160,7 +160,7 @@ class TestScene: BaseScene3D
     
     Entity eMessage;
   
-    Color4f[9] lightColors = [
+    Color4f[8] lightColors = [
         Color4f(1, 1, 1, 1),
         Color4f(1, 0.1, 0.1, 1),
         Color4f(1, 0.5, 0.1, 1),
@@ -168,8 +168,7 @@ class TestScene: BaseScene3D
         Color4f(0.1, 1, 0.1, 1),
         Color4f(0.1, 1, 0.5, 1),
         Color4f(0.1, 1, 1, 1),
-        Color4f(0.1, 0.5, 1, 1),
-        Color4f(0.1, 0.1, 1, 1)
+        Color4f(0.1, 0.5, 1, 1)
     ];
 
     bool joystickButtonAPressed;
@@ -639,7 +638,7 @@ class TestScene: BaseScene3D
         if (button == MB_RIGHT && !carViewEnabled)
         {
             Vector3f pos = fpview.camera.position + fpview.camera.characterMatrix.forward * -2.0f + Vector3f(0, 1, 0);
-            Color4f color = lightColors[uniform(0, 9)];
+            Color4f color = lightColors[uniform(0, lightColors.length)];
             createLightBall(pos, color, 1.0f, lightBallRadius, 5.0f);
         }
     }
