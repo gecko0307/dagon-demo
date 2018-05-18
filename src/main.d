@@ -44,7 +44,7 @@ import rigidbodycontroller;
 import character;
 import vehicle;
 
-BVHTree!Triangle meshBVH(Mesh[] meshes)
+BVHTree!Triangle meshesToBVH(Mesh[] meshes)
 {
     DynamicArray!Triangle tris;
 
@@ -58,6 +58,47 @@ BVHTree!Triangle meshBVH(Mesh[] meshes)
         tri2.normal = tri.normal;
         tri2.barycenter = (tri2.v[0] + tri2.v[1] + tri2.v[2]) / 3;
         tris.append(tri2);
+    }
+
+    assert(tris.length);
+    BVHTree!Triangle bvh = New!(BVHTree!Triangle)(tris, 4);
+    tris.free();
+    return bvh;
+}
+
+BVHTree!Triangle entitiesToBVH(Entity[] entities)
+{
+    DynamicArray!Triangle tris;
+
+    foreach(e; entities)
+    if (e.solid)
+    {
+        Matrix4x4f normalMatrix = e.invAbsoluteTransformation.transposed;
+    
+        Mesh mesh = cast(Mesh)e.drawable;
+        if (mesh)
+        {
+            foreach(tri; mesh)
+            {
+                Vector3f v1 = tri.v[0];
+                Vector3f v2 = tri.v[1];
+                Vector3f v3 = tri.v[2];
+                Vector3f n = tri.normal;
+                
+                v1 = v1 * e.absoluteTransformation;
+                v2 = v2 * e.absoluteTransformation;
+                v3 = v3 * e.absoluteTransformation;
+                n = n * normalMatrix;
+            
+                Triangle tri2 = tri;
+                tri2.v[0] = v1;
+                tri2.v[1] = v2;
+                tri2.v[2] = v3;
+                tri2.normal = n;
+                tri2.barycenter = (tri2.v[0] + tri2.v[1] + tri2.v[2]) / 3;
+                tris.append(tri2);
+            }
+        }
     }
 
     assert(tris.length);
@@ -117,6 +158,8 @@ class TestScene: BaseScene3D
     
     Entity eMrfixit;
     Actor actor;
+    
+    PackageAsset aPackage;
 
     ShadelessBackend shadelessMatBackend;
     float sunPitch = -45.0f;
@@ -251,6 +294,9 @@ class TestScene: BaseScene3D
         
         aTexColorTable = addTextureAsset("data/colortables/colortable4.png");
         aTexVignette = addTextureAsset("data/vignette.png");
+        
+        aPackage = New!PackageAsset(assetManager);
+        addAsset(aPackage, "data/scene.asset");
     }
 
     override void onAllocate()
@@ -365,15 +411,15 @@ class TestScene: BaseScene3D
         eSky = createSky();
 
         // Create castle entity
-        Entity eCastle = createEntity3D();
-        eCastle.drawable = aCastle.mesh;
-        eCastle.material = mStone;
+        //Entity eCastle = createEntity3D();
+        //eCastle.drawable = aCastle.mesh;
+        //eCastle.material = mStone;
         
         // Create Imrod entity
         Entity eImrod = createEntity3D();
         eImrod.material = matImrod;
         eImrod.drawable = aImrod.mesh;
-        eImrod.position.x = -2.0f;
+        eImrod.position.x = -8.0f;
         eImrod.scaling = Vector3f(0.5, 0.5, 0.5);
         
         // Create Mr Fixit entity (animated model)
@@ -381,17 +427,21 @@ class TestScene: BaseScene3D
         eMrfixit = createEntity3D();
         eMrfixit.drawable = actor;
         eMrfixit.material = matDefault;
-        eMrfixit.position.x = 2.0f;
+        eMrfixit.position.x = 8.0f;
         eMrfixit.rotation = rotationQuaternion(Axis.y, degtorad(-90.0f));
         eMrfixit.scaling = Vector3f(0.25, 0.25, 0.25);
         eMrfixit.defaultController.swapZY = true;
+        
+        // Add entities from aPackage
+        aPackage.addEntitiesToScene(this);
         
         // Create physics world 
         world = New!PhysicsWorld(assetManager);
 
         // Create BVH for castle model to handle collisions
-        Mesh[] meshes = [aCastle.mesh];
-        bvh = meshBVH(meshes);
+        //Mesh[] meshes = [aCastle.mesh];
+        //bvh = meshesToBVH(meshes);
+        bvh = entitiesToBVH(entities3D.data);
         haveBVH = true;
         world.bvhRoot = bvh.root;
         
