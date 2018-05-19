@@ -66,12 +66,9 @@ BVHTree!Triangle meshesToBVH(Mesh[] meshes)
     return bvh;
 }
 
-BVHTree!Triangle entitiesToBVH(Entity[] entities)
+void collectEntityTrisRecursive(Entity e, ref DynamicArray!Triangle tris)
 {
-    DynamicArray!Triangle tris;
-
-    foreach(e; entities)
-    if (e.solid)
+    if (e.solid && e.drawable)
     {
         Matrix4x4f normalMatrix = e.invAbsoluteTransformation.transposed;
     
@@ -100,7 +97,18 @@ BVHTree!Triangle entitiesToBVH(Entity[] entities)
             }
         }
     }
+    
+    foreach(c; e.children)
+        collectEntityTrisRecursive(c, tris);
+}
 
+BVHTree!Triangle entitiesToBVH(Entity[] entities)
+{
+    DynamicArray!Triangle tris;
+
+    foreach(e; entities)
+        collectEntityTrisRecursive(e, tris);
+    
     assert(tris.length);
     BVHTree!Triangle bvh = New!(BVHTree!Triangle)(tris, 4);
     tris.free();
@@ -439,8 +447,6 @@ class TestScene: BaseScene3D
         world = New!PhysicsWorld(assetManager);
 
         // Create BVH for castle model to handle collisions
-        //Mesh[] meshes = [aCastle.mesh];
-        //bvh = meshesToBVH(meshes);
         bvh = entitiesToBVH(entities3D.data);
         haveBVH = true;
         world.bvhRoot = bvh.root;
