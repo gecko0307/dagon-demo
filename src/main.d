@@ -303,7 +303,7 @@ class TestScene: BaseScene3D
         aTexColorTable = addTextureAsset("data/colortables/colortable4.png");
         aTexVignette = addTextureAsset("data/vignette.png");
         
-        aPackage = New!PackageAsset(assetManager);
+        aPackage = New!PackageAsset(this, assetManager);
         addAsset(aPackage, "data/scene.asset");
     }
 
@@ -440,8 +440,8 @@ class TestScene: BaseScene3D
         eMrfixit.scaling = Vector3f(0.25, 0.25, 0.25);
         eMrfixit.defaultController.swapZY = true;
         
-        // Add entities from aPackage
-        aPackage.addEntitiesToScene(this);
+        // Add a root entity from aPackage to the scene
+        Entity packageEntity = addEntity3D(aPackage.entity);
         
         // Create physics world 
         world = New!PhysicsWorld(assetManager);
@@ -587,8 +587,6 @@ class TestScene: BaseScene3D
         auto eMessage = createEntity2D();
         eMessage.drawable = messageText;
         eMessage.position = Vector3f(eventManager.windowWidth * 0.5f - messageText.width * 0.5f, eventManager.windowHeight * 0.5f, 0.0f);
-        
-        writeln(cast(int)log2(fmax(1280, 720)));
     }
     
     void setCarMotionBlur(bool val)
