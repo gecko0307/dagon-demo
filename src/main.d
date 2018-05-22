@@ -693,7 +693,7 @@ class TestScene: BaseScene3D
         {
             Vector3f pos = fpview.camera.position + fpview.camera.characterMatrix.forward * -2.0f + Vector3f(0, 1, 0);
             Color4f color = lightColors[uniform(0, lightColors.length)];
-            createLightBall(pos, color, 1.0f, lightBallRadius, 5.0f);
+            createLightBall(pos, color, 10.0f, lightBallRadius, 5.0f);
         }
     }
     
@@ -703,7 +703,7 @@ class TestScene: BaseScene3D
             
         if (light)
         {
-            auto mLightBall = createMaterial(shadelessMatBackend);
+            auto mLightBall = createMaterial(); //shadelessMatBackend
             mLightBall.diffuse = color;
             mLightBall.emission = color;
             mLightBall.energy = energy;
