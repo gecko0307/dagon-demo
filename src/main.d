@@ -172,6 +172,8 @@ class TestScene: BaseScene3D
     Actor actor;
     
     PackageAsset aPackage;
+    
+    ShapeSphere sSphere;
 
     ShadelessBackend shadelessMatBackend;
     float sunPitch = -45.0f;
@@ -468,6 +470,8 @@ class TestScene: BaseScene3D
         gLightBall = New!GeomSphere(world, lightBallRadius);
         auto gSphere = New!GeomEllipsoid(world, Vector3f(0.9f, 1.0f, 0.9f));
         
+        sSphere = New!ShapeSphere(1.0f, 24, 16, false, assetManager);
+        
         // Create character controller
         character = New!CharacterController(world, fpview.camera.position, 80.0f, gSphere, assetManager);
         auto gSensor = New!GeomBox(world, Vector3f(0.5f, 0.5f, 0.5f));
@@ -714,11 +718,12 @@ class TestScene: BaseScene3D
             mLightBall.energy = energy;
                 
             auto eLightBall = createEntity3D();
-            eLightBall.drawable = aSphere.mesh;
-            eLightBall.scaling = Vector3f(-areaRadius, -areaRadius, -areaRadius);
+            eLightBall.drawable = sSphere; //aSphere.mesh;
+            eLightBall.scaling = Vector3f(areaRadius, areaRadius, areaRadius);
             eLightBall.castShadow = false;
             eLightBall.material = mLightBall;
             eLightBall.position = pos;
+            
             auto bLightBall = world.addDynamicBody(Vector3f(0, 0, 0), 0.0f);
             RigidBodyController rbc = New!RigidBodyController(eLightBall, bLightBall);
             eLightBall.controller = rbc;
