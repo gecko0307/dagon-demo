@@ -109,10 +109,14 @@ BVHTree!Triangle entitiesToBVH(Entity[] entities)
     foreach(e; entities)
         collectEntityTrisRecursive(e, tris);
     
-    assert(tris.length);
-    BVHTree!Triangle bvh = New!(BVHTree!Triangle)(tris, 4);
-    tris.free();
-    return bvh;
+    if (tris.length)
+    {
+        BVHTree!Triangle bvh = New!(BVHTree!Triangle)(tris, 4);
+        tris.free();
+        return bvh;
+    }
+    else
+        return null;
 }
 
 class TestScene: BaseScene3D
@@ -449,7 +453,8 @@ class TestScene: BaseScene3D
         // Create BVH for castle model to handle collisions
         bvh = entitiesToBVH(entities3D.data);
         haveBVH = true;
-        world.bvhRoot = bvh.root;
+        if (bvh)
+            world.bvhRoot = bvh.root;
         
         // Create ground plane
         RigidBody bGround = world.addStaticBody(Vector3f(0.0f, 0.0f, 0.0f));
@@ -855,7 +860,8 @@ class TestScene: BaseScene3D
         // If we have created BVH, we should release it
         if (haveBVH)
         {
-            bvh.free();
+            if (bvh)
+                bvh.free();
             haveBVH = false;
         }
     }
