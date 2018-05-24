@@ -128,41 +128,25 @@ class TestScene: BaseScene3D
     TextureAsset aTexImrodDiffuse;
     TextureAsset aTexImrodNormal;
     
-    TextureAsset aTexStoneDiffuse;
-    TextureAsset aTexStoneNormal;
-    TextureAsset aTexStoneHeight;
-    
-    TextureAsset aTexStone2Diffuse;
-    TextureAsset aTexStone2Normal;
-    TextureAsset aTexStone2Height;
-    TextureAsset aTexStone2Roughness;
+    TextureAsset aTexGroundDiffuse;
+    TextureAsset aTexGroundNormal;
+    TextureAsset aTexGroundHeight;
+    TextureAsset aTexGroundRoughness;
     
     TextureAsset aTexCrateDiffuse;
-    
-    TextureAsset aTexParticle;
+
     TextureAsset aTexParticleDust;
-    
-    TextureAsset aTexCarDiffuse;
-    TextureAsset aTexCarNormal;
-    
-    TextureAsset aTexCarHeadlightsDiffuse;
+
     TextureAsset aTexCarTyreDiffuse;
     TextureAsset aTexCarTyreNormal;
     
     TextureAsset aTexColorTable;
     TextureAsset aTexVignette;
-    
-    OBJAsset aCastle;
+
     OBJAsset aImrod;
     OBJAsset aCrate;
-    OBJAsset aSphere;
     
-    OBJAsset aCarPaintedParts;
-    OBJAsset aCarChromeParts;
-    OBJAsset aCarPlasticParts;
-    OBJAsset aCarGlassParts;
-    OBJAsset aCarLightsFront;
-    OBJAsset aCarLightsBack;
+    PackageAsset aCar;
     OBJAsset aCarDisk;
     OBJAsset aCarTyre;
     
@@ -195,13 +179,7 @@ class TestScene: BaseScene3D
     BVHTree!Triangle bvh;
     bool haveBVH = false;
     
-    Entity eCar;
-    Entity eCarChrome;
-    Entity eCarPlastic;
-    Entity eCarGlass;
-    Entity eCarLightsFront;
-    Entity eCarLightsBack;
-    
+    Entity eCar;   
     Entity[4] eWheels;
     Entity[4] eTyres;
     
@@ -247,22 +225,14 @@ class TestScene: BaseScene3D
         aTexImrodDiffuse = addTextureAsset("data/textures/imrod-diffuse.png");
         aTexImrodNormal = addTextureAsset("data/textures/imrod-normal.png");
         
-        aTexStoneDiffuse = addTextureAsset("data/textures/stone-albedo.png");
-        aTexStoneNormal = addTextureAsset("data/textures/stone-normal.png");
-        aTexStoneHeight = addTextureAsset("data/textures/stone-height.png");
-        
-        aTexStone2Diffuse = addTextureAsset("data/textures/stone2-albedo.png");
-        aTexStone2Normal = addTextureAsset("data/textures/stone2-normal.png");
-        aTexStone2Height = addTextureAsset("data/textures/stone2-height.png");
-        aTexStone2Roughness = addTextureAsset("data/textures/stone2-roughness.png");
+        aTexGroundDiffuse = addTextureAsset("data/textures/ground-albedo.png");
+        aTexGroundNormal = addTextureAsset("data/textures/ground-normal.png");
+        aTexGroundHeight = addTextureAsset("data/textures/ground-height.png");
+        aTexGroundRoughness = addTextureAsset("data/textures/ground-roughness.png");
         
         aTexCrateDiffuse = addTextureAsset("data/textures/crate.png");
 
-        aTexParticle = addTextureAsset("data/textures/particle.png");
         aTexParticleDust = addTextureAsset("data/textures/dust.png");
-        
-        aCastle = New!OBJAsset(assetManager);
-        addAsset(aCastle, "data/obj/castle.obj");
         
         aImrod = New!OBJAsset(assetManager);
         addAsset(aImrod, "data/obj/imrod.obj");
@@ -270,54 +240,34 @@ class TestScene: BaseScene3D
         aCrate = New!OBJAsset(assetManager);
         addAsset(aCrate, "data/obj/crate.obj");
         
-        aSphere = New!OBJAsset(assetManager);
-        addAsset(aSphere, "data/obj/sphere.obj");
-        
         assetManager.mountDirectory("data/iqm");
         iqm = New!IQMAsset(assetManager);
         addAsset(iqm, "data/iqm/mrfixit.iqm");
         
-        aCarPaintedParts = New!OBJAsset(assetManager);
-        addAsset(aCarPaintedParts, "data/car/ac-cobra-painted-parts.obj");
+        aPackage = New!PackageAsset(this, assetManager);
+        addAsset(aPackage, "data/scene/scene.asset");
         
-        aCarChromeParts = New!OBJAsset(assetManager);
-        addAsset(aCarChromeParts, "data/car/ac-cobra-chrome-parts.obj");
-        
-        aCarPlasticParts = New!OBJAsset(assetManager);
-        addAsset(aCarPlasticParts, "data/car/ac-cobra-plastic-parts.obj");
-        
-        aCarGlassParts = New!OBJAsset(assetManager);
-        addAsset(aCarGlassParts, "data/car/ac-cobra-glass-parts.obj");
-        
-        aCarLightsFront = New!OBJAsset(assetManager);
-        addAsset(aCarLightsFront, "data/car/ac-cobra-lights-front.obj");
-        
-        aCarLightsBack = New!OBJAsset(assetManager);
-        addAsset(aCarLightsBack, "data/car/ac-cobra-lights-back.obj");
-        
+        aCar = New!PackageAsset(this, assetManager);
+        addAsset(aCar, "data/car/car.asset");
+
         aCarDisk = New!OBJAsset(assetManager);
         addAsset(aCarDisk, "data/car/ac-cobra-disk.obj");
         
         aCarTyre = New!OBJAsset(assetManager);
         addAsset(aCarTyre, "data/car/ac-cobra-tyre.obj");
-        
-        aTexCarDiffuse = addTextureAsset("data/car/ac-cobra-painted-parts.png");
-        aTexCarHeadlightsDiffuse = addTextureAsset("data/car/ac-cobra-lights-front.png");
+
         aTexCarTyreDiffuse = addTextureAsset("data/car/ac-cobra-wheel.png");
         aTexCarTyreNormal = addTextureAsset("data/car/ac-cobra-wheel-normal.png");
         
         aTexColorTable = addTextureAsset("data/colortables/colortable4.png");
         aTexVignette = addTextureAsset("data/vignette.png");
-        
-        aPackage = New!PackageAsset(this, assetManager);
-        addAsset(aPackage, "data/scene.asset");
     }
 
     override void onAllocate()
     {
         super.onAllocate();
         
-        // Configure environment
+        // Environment settings
         environment.useSkyColors = true;
         environment.atmosphericFog = true;
         environment.fogStart = 0.0f;
@@ -327,7 +277,7 @@ class TestScene: BaseScene3D
         
         shadowMap.shadowBrightness = 0.1f;
         
-        // Create camera and view
+        // Camera and view
         auto eCamera = createEntity3D();
         eCamera.position = Vector3f(25.0f, 5.0f, 0.0f);
         fpview = New!FirstPersonView(eventManager, eCamera, assetManager);
@@ -346,10 +296,10 @@ class TestScene: BaseScene3D
         lensDistortion.dispersion = 0.2;
         antiAliasing.enabled = true;
         
-        // Create material backends
+        // Material backends
         shadelessMatBackend = New!ShadelessBackend(assetManager);
         
-        // Create materials
+        // Common materials
         auto matDefault = createMaterial();
         matDefault.roughness = 0.9f;
         matDefault.metallic = 0.0f;
@@ -361,19 +311,11 @@ class TestScene: BaseScene3D
         matImrod.roughness = 0.2f;
         matImrod.metallic = 0.0f;
 
-        auto mStone = createMaterial();
-        mStone.diffuse = aTexStoneDiffuse.texture;
-        mStone.normal = aTexStoneNormal.texture;
-        mStone.height = aTexStoneHeight.texture;
-        mStone.roughness = 1.0f;
-        mStone.parallax = ParallaxSimple; //also try ParallaxOcclusionMapping
-        mStone.metallic = 0.0f;
-        
         auto mGround = createMaterial();
-        mGround.diffuse = aTexStone2Diffuse.texture;
-        mGround.normal = aTexStone2Normal.texture;
-        mGround.height = aTexStone2Height.texture;
-        mGround.roughness = aTexStone2Roughness.texture; //0.6f;
+        mGround.diffuse = aTexGroundDiffuse.texture;
+        mGround.normal = aTexGroundNormal.texture;
+        mGround.height = aTexGroundHeight.texture;
+        mGround.roughness = aTexGroundRoughness.texture;
         mGround.parallax = ParallaxSimple;
         
         auto mCrate = createMaterial();
@@ -381,62 +323,28 @@ class TestScene: BaseScene3D
         mCrate.roughness = 0.9f;
         mCrate.metallic = 0.0f;
         
-        auto matCar = createMaterial();
-        matCar.diffuse = aTexCarDiffuse.texture;
-        matCar.roughness = 0.2f;
-        matCar.metallic = 0.0f;
-        matCar.culling = false;
-        
         auto matChrome = createMaterial();
         matChrome.diffuse = Color4f(1.0f, 1.0f, 1.0f, 1.0f);
         matChrome.roughness = 0.1f;
         matChrome.metallic = 1.0f;
-        
-        auto matPlastic = createMaterial();
-        matPlastic.diffuse = Color4f(0.2f, 0.2f, 0.2f, 1.0f);
-        matPlastic.roughness = 0.8f;
-        matPlastic.metallic = 0.0f;
-        
-        auto matGlass = createMaterial();
-        matGlass.diffuse = Color4f(0.0f, 0.0f, 0.0f, 0.3f);
-        matGlass.roughness = 0.1f;
-        matGlass.metallic = 0.0f;
-        matGlass.blending = Transparent;
-        
-        auto matGlass2 = createMaterial();
-        matGlass2.diffuse = aTexCarHeadlightsDiffuse.texture;
-        matGlass2.roughness = 0.1f;
-        matGlass2.metallic = 0.0f;
-        matGlass2.blending = Transparent;
-        
-        auto matGlass3 = createMaterial();
-        matGlass3.diffuse = Color4f(0.3f, 0.0f, 0.0f, 0.5f);
-        matGlass3.roughness = 0.1f;
-        matGlass3.metallic = 0.0f;
-        matGlass3.blending = Transparent;
-        
+
         auto matWheel = createMaterial();
         matWheel.diffuse = aTexCarTyreDiffuse.texture;
         matWheel.normal = aTexCarTyreNormal.texture;
         matWheel.roughness = 0.6f;
         matWheel.metallic = 0.0f;
         
-        // Create sky entity
+        // Sky entity
         eSky = createSky();
-
-        // Create castle entity
-        //Entity eCastle = createEntity3D();
-        //eCastle.drawable = aCastle.mesh;
-        //eCastle.material = mStone;
         
-        // Create Imrod entity
+        // Imrod entity
         Entity eImrod = createEntity3D();
         eImrod.material = matImrod;
         eImrod.drawable = aImrod.mesh;
         eImrod.position.x = -8.0f;
         eImrod.scaling = Vector3f(0.5, 0.5, 0.5);
         
-        // Create Mr Fixit entity (animated model)
+        // Mr Fixit entity (animated model)
         actor = New!Actor(iqm.model, assetManager);
         eMrfixit = createEntity3D();
         eMrfixit.drawable = actor;
@@ -446,19 +354,19 @@ class TestScene: BaseScene3D
         eMrfixit.scaling = Vector3f(0.25, 0.25, 0.25);
         eMrfixit.defaultController.swapZY = true;
         
-        // Add a root entity from aPackage to the scene
+        // A scene from aPackage
         Entity packageEntity = addEntity3D(aPackage.entity);
         
-        // Create physics world 
+        // Physics world 
         world = New!PhysicsWorld(assetManager);
 
-        // Create BVH for castle model to handle collisions
+        // BVH for castle model to handle collisions
         bvh = entitiesToBVH(entities3D.data);
         haveBVH = true;
         if (bvh)
             world.bvhRoot = bvh.root;
         
-        // Create ground plane
+        // Ground plane
         RigidBody bGround = world.addStaticBody(Vector3f(0.0f, 0.0f, 0.0f));
         auto gGround = New!GeomBox(world, Vector3f(100.0f, 1.0f, 100.0f));
         world.addShapeComponent(bGround, gGround, Vector3f(0.0f, -1.0f, 0.0f), 1.0f);
@@ -466,18 +374,17 @@ class TestScene: BaseScene3D
         eGround.drawable = New!ShapePlane(200, 200, 100, assetManager);
         eGround.material = mGround;
 
-        // Create dmech geometries for dynamic objects
+        // dmech geometries for dynamic objects
         gLightBall = New!GeomSphere(world, lightBallRadius);
         auto gSphere = New!GeomEllipsoid(world, Vector3f(0.9f, 1.0f, 0.9f));
-        
         sSphere = New!ShapeSphere(1.0f, 24, 16, false, assetManager);
         
-        // Create character controller
+        // Character controller
         character = New!CharacterController(world, fpview.camera.position, 80.0f, gSphere, assetManager);
         auto gSensor = New!GeomBox(world, Vector3f(0.5f, 0.5f, 0.5f));
         character.createSensor(gSensor, Vector3f(0.0f, -0.75f, 0.0f));
 
-        // Create boxes
+        // Crates
         auto gCrate = New!GeomBox(world, Vector3f(1.0f, 1.0f, 1.0f));
         
         foreach(i; 0..5)
@@ -492,32 +399,12 @@ class TestScene: BaseScene3D
             world.addShapeComponent(bCrate, gCrate, Vector3f(0.0f, 0.0f, 0.0f), 10.0f);
         }
 
-        // Create car
+        // Car
         eCar = createEntity3D();
-        eCar.drawable = aCarPaintedParts.mesh;
-        eCar.material = matCar;
+        eCar.drawable = aCar.entity; 
         eCar.position = Vector3f(30.0f, 5.0f, 0.0f);
+        eCar.layer = 2;
         
-        eCarChrome = createEntity3D(eCar);
-        eCarChrome.drawable = aCarChromeParts.mesh;
-        eCarChrome.material = matChrome;
-        
-        eCarPlastic = createEntity3D(eCar);
-        eCarPlastic.drawable = aCarPlasticParts.mesh;
-        eCarPlastic.material = matPlastic;
-        
-        eCarGlass = createEntity3D(eCar);
-        eCarGlass.drawable = aCarGlassParts.mesh;
-        eCarGlass.material = matGlass;
-        
-        eCarLightsFront = createEntity3D(eCar);
-        eCarLightsFront.drawable = aCarLightsFront.mesh;
-        eCarLightsFront.material = matGlass2;
-        
-        eCarLightsBack = createEntity3D(eCar);
-        eCarLightsBack.drawable = aCarLightsBack.mesh;
-        eCarLightsBack.material = matGlass3;
-
         auto gBox = New!GeomBox(world, Vector3f(1.3f, 0.6f, 2.8f));
         auto b = world.addDynamicBody(Vector3f(0, 0, 0), 0.0f);
         b.damping = 0.6f;
@@ -541,14 +428,15 @@ class TestScene: BaseScene3D
         carView = New!CarView(eventManager, vehicle, assetManager);
         carViewEnabled = false;
         
+        // Dist particle systems
         auto mParticlesDust = createMaterial(shadelessMatBackend); // TODO: a specialized particle material backend
         mParticlesDust.diffuse = aTexParticleDust.texture;
         mParticlesDust.blending = Transparent;
         mParticlesDust.depthWrite = false;
         
-        auto eParticlesRights = createEntity3D(eCar);
-        psysRight = New!ParticleSystem(eParticlesRights, 20);
-        eParticlesRights.position = Vector3f(-1.2f, 0, -2.8f);
+        auto eParticlesRight = createEntity3D(eCar);
+        psysRight = New!ParticleSystem(eParticlesRight, 20);
+        eParticlesRight.position = Vector3f(-1.2f, 0, -2.8f);
         psysRight.minLifetime = 0.1f;
         psysRight.maxLifetime = 1.5f;
         psysRight.minSize = 0.5f;
@@ -557,6 +445,7 @@ class TestScene: BaseScene3D
         psysRight.maxInitialSpeed = 0.2f;
         psysRight.scaleStep = Vector2f(1, 1);
         psysRight.material = mParticlesDust;
+        eParticlesRight.layer = 3;
 
         auto eParticlesLeft = createEntity3D(eCar);
         psysLeft = New!ParticleSystem(eParticlesLeft, 20);
@@ -569,11 +458,9 @@ class TestScene: BaseScene3D
         psysLeft.maxInitialSpeed = 0.2f;
         psysLeft.scaleStep = Vector2f(1, 1);
         psysLeft.material = mParticlesDust;
-        
-        eParticlesLeft.visible = false;
-        eParticlesRights.visible = false;
+        eParticlesLeft.layer = 3;
 
-        // Create HUD text
+        // HUD text
         helpText = New!TextLine(aFontDroidSans14.font, helpTextFirstPerson, assetManager);
         helpText.color = Color4f(1.0f, 1.0f, 1.0f, 0.7f);
         
@@ -596,26 +483,6 @@ class TestScene: BaseScene3D
         auto eMessage = createEntity2D();
         eMessage.drawable = messageText;
         eMessage.position = Vector3f(eventManager.windowWidth * 0.5f - messageText.width * 0.5f, eventManager.windowHeight * 0.5f, 0.0f);
-    }
-    
-    void setCarMotionBlur(bool val)
-    {
-        eCar.useMotionBlur = val;
-        eCarChrome.useMotionBlur = val;
-        eCarPlastic.useMotionBlur = val;
-        eCarGlass.useMotionBlur = val;
-        eCarLightsFront.useMotionBlur = val;
-        eCarLightsBack.useMotionBlur = val;
-        
-        eWheels[0].useMotionBlur = val;
-        eWheels[1].useMotionBlur = val;
-        eWheels[2].useMotionBlur = val;
-        eWheels[3].useMotionBlur = val;
-        
-        eTyres[0].useMotionBlur = val;
-        eTyres[1].useMotionBlur = val;
-        eTyres[2].useMotionBlur = val;
-        eTyres[3].useMotionBlur = val;
     }
     
     override void onStart()
@@ -656,7 +523,6 @@ class TestScene: BaseScene3D
                 character.rbody.active = true;
                 character.rbody.position = vehicle.rbody.position + vehicle.rbody.orientation.rotate(Vector3f(1.0f, 0.0f, 0.0f).normalized) * 4.0f + Vector3f(0, 3, 0);
                 helpText.text = helpTextFirstPerson;
-                setCarMotionBlur(true);
             }
             else if (distance(fpview.cameraPosition, vehicle.rbody.position) <= 4.0f)
             {
@@ -664,7 +530,6 @@ class TestScene: BaseScene3D
                 carViewEnabled = true;
                 character.rbody.active = false;
                 helpText.text = helpTextVehicle;
-                setCarMotionBlur(false);
             }
         }
         else if (key == KEY_F1)
@@ -712,13 +577,13 @@ class TestScene: BaseScene3D
             
         if (light)
         {
-            auto mLightBall = createMaterial(); //shadelessMatBackend
+            auto mLightBall = createMaterial();
             mLightBall.diffuse = color;
             mLightBall.emission = color;
             mLightBall.energy = energy;
                 
             auto eLightBall = createEntity3D();
-            eLightBall.drawable = sSphere; //aSphere.mesh;
+            eLightBall.drawable = sSphere;
             eLightBall.scaling = Vector3f(areaRadius, areaRadius, areaRadius);
             eLightBall.castShadow = false;
             eLightBall.material = mLightBall;
@@ -812,6 +677,8 @@ class TestScene: BaseScene3D
         }
     }
     
+    char[100] lightsText;
+    
     override void onLogicsUpdate(double dt)
     {
         // Update our character, vehicle and physics
@@ -855,8 +722,6 @@ class TestScene: BaseScene3D
                 messageText.color.a -= 4.0f * dt;
         }
     }
-    
-    char[100] lightsText;
     
     override void onRelease()
     {
