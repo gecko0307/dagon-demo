@@ -119,7 +119,7 @@ BVHTree!Triangle entitiesToBVH(Entity[] entities)
         return null;
 }
 
-class TestScene: BaseScene3D
+class TestScene: Scene
 {
     FontAsset aFontDroidSans14;
     
@@ -155,7 +155,7 @@ class TestScene: BaseScene3D
     Entity eMrfixit;
     Actor actor;
     
-    PackageAsset aPackage;
+    PackageAsset aScene;
     
     ShapeSphere sSphere;
 
@@ -231,31 +231,21 @@ class TestScene: BaseScene3D
         aTexGroundRoughness = addTextureAsset("data/textures/ground-roughness.png");
         
         aTexCrateDiffuse = addTextureAsset("data/textures/crate.png");
-
+        
         aTexParticleDust = addTextureAsset("data/textures/dust.png");
         
-        aImrod = New!OBJAsset(assetManager);
-        addAsset(aImrod, "data/obj/imrod.obj");
+        aImrod = addOBJAsset("data/obj/imrod.obj");
         
-        aCrate = New!OBJAsset(assetManager);
-        addAsset(aCrate, "data/obj/crate.obj");
+        aCrate = addOBJAsset("data/obj/crate.obj");
         
         assetManager.mountDirectory("data/iqm");
-        iqm = New!IQMAsset(assetManager);
-        addAsset(iqm, "data/iqm/mrfixit.iqm");
+        iqm = addIQMAsset("data/iqm/mrfixit.iqm");
         
-        aPackage = New!PackageAsset(this, assetManager);
-        addAsset(aPackage, "data/scene/scene.asset");
+        aScene = addPackageAsset("data/scene/scene.asset");
         
-        aCar = New!PackageAsset(this, assetManager);
-        addAsset(aCar, "data/car/car.asset");
-
-        aCarDisk = New!OBJAsset(assetManager);
-        addAsset(aCarDisk, "data/car/ac-cobra-disk.obj");
-        
-        aCarTyre = New!OBJAsset(assetManager);
-        addAsset(aCarTyre, "data/car/ac-cobra-tyre.obj");
-
+        aCar = addPackageAsset("data/car/car.asset");
+        aCarDisk = addOBJAsset("data/car/ac-cobra-disk.obj");
+        aCarTyre = addOBJAsset("data/car/ac-cobra-tyre.obj");
         aTexCarTyreDiffuse = addTextureAsset("data/car/ac-cobra-wheel.png");
         aTexCarTyreNormal = addTextureAsset("data/car/ac-cobra-wheel-normal.png");
         
@@ -354,8 +344,8 @@ class TestScene: BaseScene3D
         eMrfixit.scaling = Vector3f(0.25, 0.25, 0.25);
         eMrfixit.defaultController.swapZY = true;
         
-        // A scene from aPackage
-        Entity packageEntity = addEntity3D(aPackage.entity);
+        // Root entity from aScene
+        Entity sceneEntity = addEntity3D(aScene.entity);
         
         // Physics world 
         world = New!PhysicsWorld(assetManager);
