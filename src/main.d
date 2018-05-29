@@ -160,6 +160,8 @@ class TestScene: Scene
     ShapeSphere sSphere;
 
     ShadelessBackend shadelessMatBackend;
+    ParticleBackend particleMatBackend;
+    
     float sunPitch = -45.0f;
     float sunTurn = 10.0f;
     
@@ -288,6 +290,7 @@ class TestScene: Scene
         
         // Material backends
         shadelessMatBackend = New!ShadelessBackend(assetManager);
+        particleMatBackend = New!ParticleBackend(gbuffer, assetManager);
         
         // Common materials
         auto matDefault = createMaterial();
@@ -419,7 +422,7 @@ class TestScene: Scene
         carViewEnabled = false;
         
         // Dist particle systems
-        auto mParticlesDust = createMaterial(shadelessMatBackend); // TODO: a specialized particle material backend
+        auto mParticlesDust = createMaterial(particleMatBackend);
         mParticlesDust.diffuse = aTexParticleDust.texture;
         mParticlesDust.blending = Transparent;
         mParticlesDust.depthWrite = false;
@@ -427,6 +430,7 @@ class TestScene: Scene
         auto eParticlesRight = createEntity3D(eCar);
         psysRight = New!ParticleSystem(eParticlesRight, 20);
         eParticlesRight.position = Vector3f(-1.2f, 0, -2.8f);
+        eParticlesRight.material = mParticlesDust;
         psysRight.minLifetime = 0.1f;
         psysRight.maxLifetime = 1.5f;
         psysRight.minSize = 0.5f;
@@ -436,10 +440,12 @@ class TestScene: Scene
         psysRight.scaleStep = Vector2f(1, 1);
         psysRight.material = mParticlesDust;
         eParticlesRight.layer = 3;
+        eParticlesRight.visible = false;
 
         auto eParticlesLeft = createEntity3D(eCar);
         psysLeft = New!ParticleSystem(eParticlesLeft, 20);
         eParticlesLeft.position = Vector3f(1.2f, 0, -2.8f);
+        eParticlesLeft.material = mParticlesDust;
         psysLeft.minLifetime = 0.1f;
         psysLeft.maxLifetime = 1.5f;
         psysLeft.minSize = 0.5f;
@@ -449,6 +455,7 @@ class TestScene: Scene
         psysLeft.scaleStep = Vector2f(1, 1);
         psysLeft.material = mParticlesDust;
         eParticlesLeft.layer = 3;
+        eParticlesLeft.visible = false;
 
         // HUD text
         helpText = New!TextLine(aFontDroidSans14.font, helpTextFirstPerson, assetManager);
