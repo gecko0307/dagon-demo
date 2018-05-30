@@ -277,7 +277,8 @@ class TestScene: Scene
         view = fpview;
         
         // Post-processing settings
-        hdr.tonemapper = Tonemapper.Hable;
+        hdr.autoExposure = true;
+        ssao.enabled = true;
         motionBlur.enabled = true;
         glow.enabled = true;
         glow.brightness = 0.6;
