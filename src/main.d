@@ -422,7 +422,37 @@ class TestScene: Scene
         carView = New!CarView(eventManager, vehicle, assetManager);
         carViewEnabled = false;
         
-        // Dist particle systems
+        // Smoke particle system with color changer and vortex
+        auto mParticlesSmoke = createMaterial(particleMatBackend);
+        mParticlesSmoke.diffuse = aTexParticleDust.texture;
+        mParticlesSmoke.blending = Transparent;
+        mParticlesSmoke.depthWrite = false;
+        mParticlesSmoke.energy = 5.0f;
+        
+        auto eParticlesTest = createEntity3D();
+        auto psys = New!ParticleSystem(eParticlesTest, 50);
+        psys.material = mParticlesSmoke;
+        psys.startColor = Color4f(1, 1, 0, 1);
+        psys.endColor = Color4f(1, 0, 0, 0);
+        psys.initialDirectionRandomFactor = 0.2f;
+        psys.scaleStep = Vector2f(1, 1);
+        psys.minInitialSpeed = 10.0f;
+        psys.maxInitialSpeed = 20.0f;
+        psys.minSize = 1.0f;
+        psys.maxSize = 3.0f;
+        eParticlesTest.position = Vector3f(0, 0, -10);
+        eParticlesTest.layer = 3;
+        eParticlesTest.visible = true;
+        
+        auto eColorChanger = createEntity3D();
+        eColorChanger.position = Vector3f(0, 3, -10);
+        auto colorChanger = New!ColorChanger(eColorChanger, psys, Color4f(0, 1, 1, 1), 1, 0.5f);
+        
+        auto eVortex = createEntity3D();
+        eVortex.position = Vector3f(0, 0, -10);
+        auto vortex = New!Vortex(eVortex, psys, 1.0f, 1.0f);
+        
+        // Dust particle systems
         auto mParticlesDust = createMaterial(particleMatBackend);
         mParticlesDust.diffuse = aTexParticleDust.texture;
         mParticlesDust.blending = Transparent;
@@ -431,7 +461,6 @@ class TestScene: Scene
         auto eParticlesRight = createEntity3D(eCar);
         psysRight = New!ParticleSystem(eParticlesRight, 20);
         eParticlesRight.position = Vector3f(-1.2f, 0, -2.8f);
-        eParticlesRight.material = mParticlesDust;
         psysRight.minLifetime = 0.1f;
         psysRight.maxLifetime = 1.5f;
         psysRight.minSize = 0.5f;
@@ -441,12 +470,11 @@ class TestScene: Scene
         psysRight.scaleStep = Vector2f(1, 1);
         psysRight.material = mParticlesDust;
         eParticlesRight.layer = 3;
-        eParticlesRight.visible = false;
+        eParticlesRight.visible = true;
 
         auto eParticlesLeft = createEntity3D(eCar);
         psysLeft = New!ParticleSystem(eParticlesLeft, 20);
         eParticlesLeft.position = Vector3f(1.2f, 0, -2.8f);
-        eParticlesLeft.material = mParticlesDust;
         psysLeft.minLifetime = 0.1f;
         psysLeft.maxLifetime = 1.5f;
         psysLeft.minSize = 0.5f;
@@ -456,7 +484,7 @@ class TestScene: Scene
         psysLeft.scaleStep = Vector2f(1, 1);
         psysLeft.material = mParticlesDust;
         eParticlesLeft.layer = 3;
-        eParticlesLeft.visible = false;
+        eParticlesLeft.visible = true;
 
         // HUD text
         helpText = New!TextLine(aFontDroidSans14.font, helpTextFirstPerson, assetManager);
