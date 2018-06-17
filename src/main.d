@@ -367,6 +367,7 @@ class TestScene: Scene
         auto eGround = createEntity3D();
         eGround.drawable = New!ShapePlane(200, 200, 100, assetManager);
         eGround.material = mGround;
+        eGround.castShadow = false;
 
         // dmech geometries for dynamic objects
         gLightBall = New!GeomSphere(world, lightBallRadius);
