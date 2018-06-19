@@ -426,9 +426,10 @@ class TestScene: Scene
         // Smoke particle system with color changer and vortex
         auto mParticlesSmoke = createMaterial(particleMatBackend);
         mParticlesSmoke.diffuse = aTexParticleDust.texture;
+        mParticlesSmoke.particleSphericalNormal = true;
         mParticlesSmoke.blending = Transparent;
         mParticlesSmoke.depthWrite = false;
-        mParticlesSmoke.energy = 5.0f;
+        mParticlesSmoke.energy = 1.0f;
         
         auto eParticlesTest = createEntity3D();
         auto psys = New!ParticleSystem(eParticlesTest, 50);
