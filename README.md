@@ -12,7 +12,7 @@ Screenshots (may be not up to date):
 [![Screenshot2](/screenshots/characters-thumb.jpg)](/screenshots/characters.jpg)
 [![Screenshot3](/screenshots/lights-thumb.jpg)](/screenshots/lights.jpg)
 
-[https://www.youtube.com/watch?v=pxu9sxL9MIM](https://www.youtube.com/watch?v=pxu9sxL9MIM)
+[https://www.youtube.com/watch?v=UhQfMkObTEs](https://www.youtube.com/watch?v=UhQfMkObTEs)
 
 Prerequisites
 -------------
