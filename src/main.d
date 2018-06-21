@@ -136,6 +136,7 @@ class TestScene: Scene
     TextureAsset aTexCrateDiffuse;
 
     TextureAsset aTexParticleDust;
+    TextureAsset aTexParticleDustNormal;
 
     TextureAsset aTexCarTyreDiffuse;
     TextureAsset aTexCarTyreNormal;
@@ -222,7 +223,7 @@ class TestScene: Scene
     {
         aFontDroidSans14 = addFontAsset("data/font/DroidSans.ttf", 14);
         
-        aEnvmap = addTextureAsset("data/hdri/tiber_island_1k.hdr");
+        aEnvmap = addTextureAsset("data/hdri/the_sky_is_on_fire_1k.hdr");
     
         aTexImrodDiffuse = addTextureAsset("data/textures/imrod-diffuse.png");
         aTexImrodNormal = addTextureAsset("data/textures/imrod-normal.png");
@@ -235,6 +236,7 @@ class TestScene: Scene
         aTexCrateDiffuse = addTextureAsset("data/textures/crate.png");
         
         aTexParticleDust = addTextureAsset("data/textures/dust.png");
+        aTexParticleDustNormal = addTextureAsset("data/textures/dust-normal.png");
         
         aImrod = addOBJAsset("data/obj/imrod.obj");
         
@@ -286,7 +288,7 @@ class TestScene: Scene
         lut.texture = aTexColorTable.texture;
         vignette.texture = aTexVignette.texture;
         lensDistortion.enabled = true;
-        lensDistortion.dispersion = 0.2;
+        lensDistortion.dispersion = 0.1;
         antiAliasing.enabled = true;
         
         // Material backends
@@ -426,10 +428,12 @@ class TestScene: Scene
         // Smoke particle system with color changer and vortex
         auto mParticlesSmoke = createMaterial(particleMatBackend);
         mParticlesSmoke.diffuse = aTexParticleDust.texture;
-        mParticlesSmoke.particleSphericalNormal = true;
+        mParticlesSmoke.normal = aTexParticleDustNormal.texture;
+        //mParticlesSmoke.particleSphericalNormal = true;
         mParticlesSmoke.blending = Transparent;
         mParticlesSmoke.depthWrite = false;
         mParticlesSmoke.energy = 1.0f;
+        //mParticlesSmoke.shadeless = true;
         
         auto eParticlesTest = createEntity3D();
         auto psys = New!ParticleSystem(eParticlesTest, 50);
