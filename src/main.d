@@ -135,6 +135,7 @@ class TestScene: Scene
     
     TextureAsset aTexCrateDiffuse;
 
+    TextureAsset aTexParticleSmoke;
     TextureAsset aTexParticleDust;
     TextureAsset aTexParticleDustNormal;
 
@@ -235,6 +236,7 @@ class TestScene: Scene
         
         aTexCrateDiffuse = addTextureAsset("data/textures/crate.png");
         
+        aTexParticleSmoke = addTextureAsset("data/textures/smoke.png");
         aTexParticleDust = addTextureAsset("data/textures/dust.png");
         aTexParticleDustNormal = addTextureAsset("data/textures/dust-normal.png");
         
@@ -245,7 +247,7 @@ class TestScene: Scene
         assetManager.mountDirectory("data/iqm");
         iqm = addIQMAsset("data/iqm/mrfixit.iqm");
         
-        aScene = addPackageAsset("data/scene/scene.asset");
+        aScene = addPackageAsset("data/village/village.asset");
         
         aCar = addPackageAsset("data/car/car.asset");
         aCarDisk = addOBJAsset("data/car/ac-cobra-disk.obj");
@@ -279,7 +281,7 @@ class TestScene: Scene
         view = fpview;
         
         // Post-processing settings
-        hdr.autoExposure = true;
+        hdr.autoExposure = false;
         ssao.enabled = true;
         motionBlur.enabled = true;
         glow.enabled = true;
@@ -334,11 +336,13 @@ class TestScene: Scene
         eSky = createSky();
         
         // Imrod entity
+        /*
         Entity eImrod = createEntity3D();
         eImrod.material = matImrod;
         eImrod.drawable = aImrod.mesh;
-        eImrod.position.x = -8.0f;
+        eImrod.position.x = -2.0f;
         eImrod.scaling = Vector3f(0.5, 0.5, 0.5);
+        */
         
         // Mr Fixit entity (animated model)
         actor = New!Actor(iqm.model, assetManager);
@@ -382,7 +386,7 @@ class TestScene: Scene
         character.createSensor(gSensor, Vector3f(0.0f, -0.75f, 0.0f));
 
         // Crates
-        auto gCrate = New!GeomBox(world, Vector3f(1.0f, 1.0f, 1.0f));
+        auto gCrate = New!GeomBox(world, Vector3f(0.5f, 0.5f, 0.5f));
         
         foreach(i; 0..5)
         {
@@ -390,10 +394,11 @@ class TestScene: Scene
             eCrate.drawable = aCrate.mesh;
             eCrate.material = mCrate;
             eCrate.position = Vector3f(i * 0.1f, 3.0f + 3.0f * cast(float)i, -5.0f);
+            eCrate.scaling = Vector3f(0.5f, 0.5f, 0.5f);
             auto bCrate = world.addDynamicBody(Vector3f(0, 0, 0), 0.0f);
             RigidBodyController rbc = New!RigidBodyController(eCrate, bCrate);
             eCrate.controller = rbc;
-            world.addShapeComponent(bCrate, gCrate, Vector3f(0.0f, 0.0f, 0.0f), 10.0f);
+            world.addShapeComponent(bCrate, gCrate, Vector3f(0.0f, 0.0f, 0.0f), 30.0f);
         }
 
         // Car
@@ -427,7 +432,7 @@ class TestScene: Scene
         
         // Smoke particle system with color changer and vortex
         auto mParticlesSmoke = createMaterial(particleMatBackend);
-        mParticlesSmoke.diffuse = aTexParticleDust.texture;
+        mParticlesSmoke.diffuse = aTexParticleSmoke.texture;
         mParticlesSmoke.normal = aTexParticleDustNormal.texture;
         //mParticlesSmoke.particleSphericalNormal = true;
         mParticlesSmoke.blending = Transparent;
@@ -435,24 +440,25 @@ class TestScene: Scene
         mParticlesSmoke.energy = 1.0f;
         //mParticlesSmoke.shadeless = true;
         
+        Vector3f pos = Vector3f(0, 0, -10);
+        auto chimney = aScene.entity("obChimney.entity");
+        if (chimney)
+            pos = chimney.absolutePosition;
+            
         auto eParticlesTest = createEntity3D();
         auto psys = New!ParticleSystem(eParticlesTest, 50);
         psys.material = mParticlesSmoke;
-        psys.startColor = Color4f(1, 1, 0, 1);
-        psys.endColor = Color4f(1, 0, 0, 0);
+        psys.startColor = Color4f(0.5, 0.5, 0.5, 1);
+        psys.endColor = Color4f(0, 0, 0, 0);
         psys.initialDirectionRandomFactor = 0.2f;
         psys.scaleStep = Vector2f(1, 1);
-        psys.minInitialSpeed = 10.0f;
-        psys.maxInitialSpeed = 20.0f;
-        psys.minSize = 1.0f;
-        psys.maxSize = 3.0f;
-        eParticlesTest.position = Vector3f(0, 0, -10);
+        psys.minInitialSpeed = 5.0f;
+        psys.maxInitialSpeed = 10.0f;
+        psys.minSize = 0.5f;
+        psys.maxSize = 2.0f;
+        eParticlesTest.position = pos;
         eParticlesTest.layer = 3;
         eParticlesTest.visible = true;
-        
-        auto eColorChanger = createEntity3D();
-        eColorChanger.position = Vector3f(0, 3, -10);
-        auto colorChanger = New!ColorChanger(eColorChanger, psys, Color4f(0, 1, 1, 1), 1, 0.5f);
         
         auto eVortex = createEntity3D();
         eVortex.position = Vector3f(0, 0, -10);
