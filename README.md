@@ -16,7 +16,7 @@ Screenshots (may be not up to date):
 
 Prerequisites
 -------------
-To run the demo, a number of libraries should be installed, namely SDL2 and Freetype 2.8.1. We provide libraries for 64-bit Windows.
+To run the demo, a number of libraries should be installed, namely SDL 2.0.8 and Freetype 2.8.1. We provide libraries for 32 and 64-bit Windows.
 
 Building
 --------
