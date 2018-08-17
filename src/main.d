@@ -34,8 +34,6 @@ import std.algorithm;
 
 import dagon;
 
-import rigidbodycontroller;
-import character;
 import vehicle;
 
 BVHTree!Triangle meshesToBVH(Mesh[] meshes)
@@ -375,7 +373,9 @@ class TestScene: Scene
         sSphere = New!ShapeSphere(1.0f, 24, 16, false, assetManager);
         
         // Character controller
-        character = New!CharacterController(world, fpview.camera.position, 80.0f, gSphere, assetManager);
+        auto eCharacter = createEntity3D();
+        eCharacter.position = fpview.camera.position;
+        character = New!CharacterController(eCharacter, world, 80.0f, gSphere);
         auto gSensor = New!GeomBox(world, Vector3f(0.5f, 0.5f, 0.5f));
         character.createSensor(gSensor, Vector3f(0.0f, -0.75f, 0.0f));
 
@@ -648,7 +648,7 @@ class TestScene: Scene
         if (eventManager.keyPressed[KEY_D]) dir += right;
         character.move(dir.normalized, speed);
         if (eventManager.keyPressed[KEY_SPACE]) character.jump(2.0f);
-        character.update();
+        character.logicalUpdate();
     }
 
     void updateVehicle(double dt)
