@@ -28,7 +28,6 @@ DEALINGS IN THE SOFTWARE.
 module rigidbodycontroller;
 
 import dagon;
-import dmech.rigidbody;
 
 class RigidBodyController: EntityController
 {

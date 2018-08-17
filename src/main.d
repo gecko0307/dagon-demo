@@ -34,12 +34,6 @@ import std.algorithm;
 
 import dagon;
 
-import dmech.world;
-import dmech.geometry;
-import dmech.rigidbody;
-import dmech.bvh;
-import dmech.raycast;
-
 import rigidbodycontroller;
 import character;
 import vehicle;

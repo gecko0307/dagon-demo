@@ -35,14 +35,7 @@ import dlib.math.matrix;
 import dlib.math.transformation;
 import dlib.math.utils;
 
-import dagon.core.ownership;
-
-import dmech.world;
-import dmech.rigidbody;
-import dmech.geometry;
-import dmech.shape;
-import dmech.contact;
-import dmech.raycast;
+import dagon;
 
 /*
  * CharacterController implements kinematic body on top of dmech dynamics: it allows direct

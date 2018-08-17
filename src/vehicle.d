@@ -32,13 +32,6 @@ import std.algorithm;
 
 import dagon;
 
-import dmech.world;
-import dmech.rigidbody;
-import dmech.geometry;
-import dmech.shape;
-import dmech.contact;
-import dmech.raycast;
-
 class Wheel: Owner
 {
     Vector3f suspPosition;
