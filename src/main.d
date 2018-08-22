@@ -154,7 +154,6 @@ class TestScene: Scene
     ShapeSphere sSphere;
 
     ShadelessBackend shadelessMatBackend;
-    ParticleBackend particleMatBackend;
     
     float sunPitch = -45.0f;
     float sunTurn = 10.0f;
@@ -179,8 +178,8 @@ class TestScene: Scene
     Entity[4] eWheels;
     Entity[4] eTyres;
     
-    ParticleSystem psysLeft;
-    ParticleSystem psysRight;
+    Emitter emitterLeft;
+    Emitter emitterRight;
 
     string helpTextFirstPerson = "Press <LMB> to switch mouse look, WASD to move, spacebar to jump, <RMB> to create a light, arrow keys to rotate the sun";
     string helpTextVehicle = "Press W/S to accelerate forward/backward, A/D to steer, E to get out of the car";
@@ -287,7 +286,6 @@ class TestScene: Scene
         
         // Material backends
         shadelessMatBackend = New!ShadelessBackend(assetManager);
-        particleMatBackend = New!ParticleBackend(gbuffer, assetManager);
         
         // Common materials
         auto matDefault = createMaterial();
@@ -425,14 +423,13 @@ class TestScene: Scene
         carViewEnabled = false;
         
         // Smoke particle system with color changer and vortex
-        auto mParticlesSmoke = createMaterial(particleMatBackend);
+        auto mParticlesSmoke = createParticleMaterial();
         mParticlesSmoke.diffuse = aTexParticleSmoke.texture;
         mParticlesSmoke.normal = aTexParticleDustNormal.texture;
         //mParticlesSmoke.particleSphericalNormal = true;
         mParticlesSmoke.blending = Transparent;
         mParticlesSmoke.depthWrite = false;
         mParticlesSmoke.energy = 1.0f;
-        //mParticlesSmoke.shadeless = true;
         
         Vector3f pos = Vector3f(0, 0, -10);
         auto chimney = aScene.entity("obChimney.entity");
@@ -440,55 +437,55 @@ class TestScene: Scene
             pos = chimney.absolutePosition;
             
         auto eParticlesTest = createEntity3D();
-        auto psys = New!ParticleSystem(eParticlesTest, 50);
-        psys.material = mParticlesSmoke;
-        psys.startColor = Color4f(0.5, 0.5, 0.5, 1);
-        psys.endColor = Color4f(0, 0, 0, 0);
-        psys.initialDirectionRandomFactor = 0.2f;
-        psys.scaleStep = Vector2f(1, 1);
-        psys.minInitialSpeed = 5.0f;
-        psys.maxInitialSpeed = 10.0f;
-        psys.minSize = 0.5f;
-        psys.maxSize = 2.0f;
+        auto emitterSmoke = New!Emitter(eParticlesTest, particleSystem, 50);
+        emitterSmoke.material = mParticlesSmoke;
+        emitterSmoke.startColor = Color4f(0.5, 0.5, 0.5, 1);
+        emitterSmoke.endColor = Color4f(0, 0, 0, 0);
+        emitterSmoke.initialDirectionRandomFactor = 0.2f;
+        emitterSmoke.scaleStep = Vector2f(1, 1);
+        emitterSmoke.minInitialSpeed = 5.0f;
+        emitterSmoke.maxInitialSpeed = 10.0f;
+        emitterSmoke.minSize = 0.5f;
+        emitterSmoke.maxSize = 2.0f;
         eParticlesTest.position = pos;
         eParticlesTest.layer = 3;
         eParticlesTest.visible = true;
         
         auto eVortex = createEntity3D();
         eVortex.position = Vector3f(0, 0, -10);
-        auto vortex = New!Vortex(eVortex, psys, 1.0f, 1.0f);
+        auto vortex = New!Vortex(eVortex, particleSystem, 1.0f, 1.0f);
         
         // Dust particle systems
-        auto mParticlesDust = createMaterial(particleMatBackend);
+        auto mParticlesDust = createParticleMaterial();
         mParticlesDust.diffuse = aTexParticleDust.texture;
         mParticlesDust.blending = Transparent;
         mParticlesDust.depthWrite = false;
         
         auto eParticlesRight = createEntity3D(eCar);
-        psysRight = New!ParticleSystem(eParticlesRight, 20);
+        emitterRight = New!Emitter(eParticlesRight, particleSystem, 20);
         eParticlesRight.position = Vector3f(-1.2f, 0, -2.8f);
-        psysRight.minLifetime = 0.1f;
-        psysRight.maxLifetime = 1.5f;
-        psysRight.minSize = 0.5f;
-        psysRight.maxSize = 1.0f;
-        psysRight.minInitialSpeed = 0.2f;
-        psysRight.maxInitialSpeed = 0.2f;
-        psysRight.scaleStep = Vector2f(1, 1);
-        psysRight.material = mParticlesDust;
+        emitterRight.minLifetime = 0.1f;
+        emitterRight.maxLifetime = 1.5f;
+        emitterRight.minSize = 0.5f;
+        emitterRight.maxSize = 1.0f;
+        emitterRight.minInitialSpeed = 0.2f;
+        emitterRight.maxInitialSpeed = 0.2f;
+        emitterRight.scaleStep = Vector2f(1, 1);
+        emitterRight.material = mParticlesDust;
         eParticlesRight.layer = 3;
         eParticlesRight.visible = true;
 
         auto eParticlesLeft = createEntity3D(eCar);
-        psysLeft = New!ParticleSystem(eParticlesLeft, 20);
+        emitterLeft = New!Emitter(eParticlesLeft, particleSystem, 20);
         eParticlesLeft.position = Vector3f(1.2f, 0, -2.8f);
-        psysLeft.minLifetime = 0.1f;
-        psysLeft.maxLifetime = 1.5f;
-        psysLeft.minSize = 0.5f;
-        psysLeft.maxSize = 1.0f;
-        psysLeft.minInitialSpeed = 0.2f;
-        psysLeft.maxInitialSpeed = 0.2f;
-        psysLeft.scaleStep = Vector2f(1, 1);
-        psysLeft.material = mParticlesDust;
+        emitterLeft.minLifetime = 0.1f;
+        emitterLeft.maxLifetime = 1.5f;
+        emitterLeft.minSize = 0.5f;
+        emitterLeft.maxSize = 1.0f;
+        emitterLeft.minInitialSpeed = 0.2f;
+        emitterLeft.maxInitialSpeed = 0.2f;
+        emitterLeft.scaleStep = Vector2f(1, 1);
+        emitterLeft.material = mParticlesDust;
         eParticlesLeft.layer = 3;
         eParticlesLeft.visible = true;
 
@@ -684,10 +681,10 @@ class TestScene: Scene
                 vehicle.resetSteering();
         }
         
-        if (vehicle.wheels[2].isDrifting) psysLeft.emitting = true;
-        else psysLeft.emitting = false;
-        if (vehicle.wheels[3].isDrifting) psysRight.emitting = true;
-        else psysRight.emitting = false;
+        if (vehicle.wheels[2].isDrifting) emitterLeft.emitting = true;
+        else emitterLeft.emitting = false;
+        if (vehicle.wheels[3].isDrifting) emitterRight.emitting = true;
+        else emitterRight.emitting = false;
         
         vehicle.fixedStepUpdate(dt);
         
