@@ -6,12 +6,6 @@ The demo shows how to load static and animated meshes, assign materials and text
 
 If you like Dagon, please support its development on [Patreon](https://www.patreon.com/gecko0307) or [Liberapay](https://liberapay.com/gecko0307). You can also make one-time donation via [PayPal](https://www.paypal.me/tgafarov). I appreciate any support. Thanks in advance!
 
-Screenshots (may be not up to date):
-
-[![Screenshot1](/screenshots/car-thumb.jpg)](/screenshots/car.jpg)
-[![Screenshot2](/screenshots/characters-thumb.jpg)](/screenshots/characters.jpg)
-[![Screenshot3](/screenshots/lights-thumb.jpg)](/screenshots/lights.jpg)
-
 [https://www.youtube.com/watch?v=UhQfMkObTEs](https://www.youtube.com/watch?v=UhQfMkObTEs)
 
 Prerequisites
