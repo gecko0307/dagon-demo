@@ -246,7 +246,7 @@ class TestScene: Scene
         aTexCarTyreDiffuse = addTextureAsset("data/car/ac-cobra-wheel.png");
         aTexCarTyreNormal = addTextureAsset("data/car/ac-cobra-wheel-normal.png");
         
-        aTexColorTable = addTextureAsset("data/colortables/colortable4.png");
+        aTexColorTable = addTextureAsset("data/colortables/filter1.png");
         aTexVignette = addTextureAsset("data/vignette.png");
     }
 
@@ -255,14 +255,8 @@ class TestScene: Scene
         super.onAllocate();
         
         // Environment settings
-        environment.useSkyColors = true;
-        environment.atmosphericFog = true;
-        environment.fogStart = 0.0f;
-        environment.fogEnd = 10000.0f;
         //environment.environmentMap = aEnvmap.texture;
-        //environment.environmentMap.useLinearFiltering = false;
-        
-        shadowMap.shadowBrightness = 0.1f;
+        environment.sunEnergy = 50;        
         
         // Camera and view
         auto eCamera = createEntity3D();
@@ -272,17 +266,19 @@ class TestScene: Scene
         view = fpview;
         
         // Post-processing settings
-        hdr.autoExposure = false;
-        ssao.enabled = true;
+        hdr.autoExposure = true;
+        //ssao.enabled = true;
         motionBlur.enabled = true;
+        motionBlur.shutterSpeed = 1.0 / 24.0;
+        motionBlur.samples = 30;
         glow.enabled = true;
-        glow.brightness = 0.6;
-        glow.radius = 5;
-        lut.texture = aTexColorTable.texture;
-        vignette.texture = aTexVignette.texture;
+        glow.brightness = 0.8;
+        glow.radius = 10;
+        antiAliasing.enabled = true;
         lensDistortion.enabled = true;
         lensDistortion.dispersion = 0.1;
-        antiAliasing.enabled = true;
+        lut.texture = aTexColorTable.texture;
+        vignette.texture = aTexVignette.texture;
         
         // Material backends
         shadelessMatBackend = New!ShadelessBackend(assetManager);
@@ -731,11 +727,9 @@ class TestScene: Scene
         // Update infoText with some debug info
         float speed = vehicle.speed * 3.6f;
         uint n = sprintf(lightsText.ptr, 
-            "FPS: %u | visible lights: %u | total lights: %u | max visible lights: %u | speed: %f km/h", 
+            "FPS: %u | lights: %u | speed: %f km/h", 
             eventManager.fps, 
-            lightManager.currentlyVisibleLights, 
             lightManager.lightSources.length, 
-            lightManager.maxNumLights,
             speed);
         string s = cast(string)lightsText[0..n];
         infoText.setText(s);
