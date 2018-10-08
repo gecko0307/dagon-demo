@@ -116,9 +116,6 @@ class TestScene: Scene
     FontAsset aFontDroidSans14;
     
     TextureAsset aEnvmap;
-
-    TextureAsset aTexImrodDiffuse;
-    TextureAsset aTexImrodNormal;
     
     TextureAsset aTexGroundDiffuse;
     TextureAsset aTexGroundNormal;
@@ -136,8 +133,9 @@ class TestScene: Scene
     
     TextureAsset aTexColorTable;
     TextureAsset aTexVignette;
+    
+    TextureAsset aTexDwarf;
 
-    OBJAsset aImrod;
     OBJAsset aCrate;
     
     PackageAsset aCar;
@@ -145,8 +143,7 @@ class TestScene: Scene
     OBJAsset aCarTyre;
     
     IQMAsset iqm;
-    
-    Entity eMrfixit;
+    Entity eDwarf;
     Actor actor;
     
     PackageAsset aScene;
@@ -216,9 +213,6 @@ class TestScene: Scene
         aFontDroidSans14 = addFontAsset("data/font/DroidSans.ttf", 14);
         
         aEnvmap = addTextureAsset("data/hdri/the_sky_is_on_fire_1k.hdr");
-    
-        aTexImrodDiffuse = addTextureAsset("data/textures/imrod-diffuse.png");
-        aTexImrodNormal = addTextureAsset("data/textures/imrod-normal.png");
         
         aTexGroundDiffuse = addTextureAsset("data/textures/ground-albedo.png");
         aTexGroundNormal = addTextureAsset("data/textures/ground-normal.png");
@@ -231,12 +225,10 @@ class TestScene: Scene
         aTexParticleDust = addTextureAsset("data/textures/dust.png");
         aTexParticleDustNormal = addTextureAsset("data/textures/dust-normal.png");
         
-        aImrod = addOBJAsset("data/obj/imrod.obj");
-        
         aCrate = addOBJAsset("data/obj/crate.obj");
         
         assetManager.mountDirectory("data/iqm");
-        iqm = addIQMAsset("data/iqm/mrfixit.iqm");
+        iqm = addIQMAsset("data/iqm/dwarf.iqm");
         
         aScene = addPackageAsset("data/village/village.asset");
         
@@ -248,6 +240,8 @@ class TestScene: Scene
         
         aTexColorTable = addTextureAsset("data/colortables/filter1.png");
         aTexVignette = addTextureAsset("data/vignette.png");
+        
+        aTexDwarf = addTextureAsset("data/iqm/dwarf.jpg");
     }
 
     override void onAllocate()
@@ -255,8 +249,13 @@ class TestScene: Scene
         super.onAllocate();
         
         // Environment settings
+        environment.useSkyColors = true;
+        environment.atmosphericFog = true;
+        environment.fogStart = 0.0f;
+        environment.fogEnd = 10000.0f;
         //environment.environmentMap = aEnvmap.texture;
-        environment.sunEnergy = 50;        
+        
+        shadowMap.shadowBrightness = 0.1f;
         
         // Camera and view
         auto eCamera = createEntity3D();
@@ -272,11 +271,11 @@ class TestScene: Scene
         motionBlur.shutterSpeed = 1.0 / 24.0;
         motionBlur.samples = 30;
         glow.enabled = true;
-        glow.brightness = 0.8;
+        glow.brightness = 1.0;
         glow.radius = 10;
-        antiAliasing.enabled = true;
         lensDistortion.enabled = true;
         lensDistortion.dispersion = 0.1;
+        antiAliasing.enabled = true;
         lut.texture = aTexColorTable.texture;
         vignette.texture = aTexVignette.texture;
         
@@ -288,12 +287,6 @@ class TestScene: Scene
         matDefault.roughness = 0.9f;
         matDefault.metallic = 0.0f;
         matDefault.culling = false;
-        
-        auto matImrod = createMaterial();
-        matImrod.diffuse = aTexImrodDiffuse.texture;
-        matImrod.normal = aTexImrodNormal.texture;
-        matImrod.roughness = 0.2f;
-        matImrod.metallic = 0.0f;
 
         auto mGround = createMaterial();
         mGround.diffuse = aTexGroundDiffuse.texture;
@@ -321,24 +314,18 @@ class TestScene: Scene
         // Sky entity
         eSky = createSky();
         
-        // Imrod entity
-        /*
-        Entity eImrod = createEntity3D();
-        eImrod.material = matImrod;
-        eImrod.drawable = aImrod.mesh;
-        eImrod.position.x = -2.0f;
-        eImrod.scaling = Vector3f(0.5, 0.5, 0.5);
-        */
-        
-        // Mr Fixit entity (animated model)
+        // Dwarf entity (animated model)
         actor = New!Actor(iqm.model, assetManager);
-        eMrfixit = createEntity3D();
-        eMrfixit.drawable = actor;
-        eMrfixit.material = matDefault;
-        eMrfixit.position.x = 8.0f;
-        eMrfixit.rotation = rotationQuaternion(Axis.y, degtorad(-90.0f));
-        eMrfixit.scaling = Vector3f(0.25, 0.25, 0.25);
-        eMrfixit.defaultController.swapZY = true;
+        eDwarf = createEntity3D();
+        eDwarf.drawable = actor;
+        auto matDwarf = createMaterial();
+        matDwarf.diffuse = aTexDwarf.texture;
+        matDwarf.roughness = 0.8f;
+        eDwarf.material = matDwarf;
+        eDwarf.position.x = 8.0f;
+        //eDwarf.rotation = rotationQuaternion(Axis.y, degtorad(-90.0f));
+        eDwarf.scaling = Vector3f(0.04, 0.04, 0.04);
+        eDwarf.defaultController.swapZY = true;
         
         // Root entity from aScene
         Entity sceneEntity = addEntity3D(aScene.entity);
@@ -726,11 +713,7 @@ class TestScene: Scene
 
         // Update infoText with some debug info
         float speed = vehicle.speed * 3.6f;
-        uint n = sprintf(lightsText.ptr, 
-            "FPS: %u | lights: %u | speed: %f km/h", 
-            eventManager.fps, 
-            lightManager.lightSources.length, 
-            speed);
+        uint n = sprintf(lightsText.ptr, "FPS: %u", eventManager.fps);
         string s = cast(string)lightsText[0..n];
         infoText.setText(s);
         
