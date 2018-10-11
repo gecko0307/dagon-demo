@@ -8,6 +8,8 @@ If you like Dagon, please support its development on [Patreon](https://www.patre
 
 [https://www.youtube.com/watch?v=UhQfMkObTEs](https://www.youtube.com/watch?v=UhQfMkObTEs)
 
+[![Screenshot4](https://1.bp.blogspot.com/-o8H1blpZeFQ/W78a-nttgrI/AAAAAAAADrc/LPZZ4j_A5jIye0hib3bR7W17sAvY1ucYQCLcBGAs/s1600/dagon-demo-dwarf.jpg)](https://1.bp.blogspot.com/-o8H1blpZeFQ/W78a-nttgrI/AAAAAAAADrc/LPZZ4j_A5jIye0hib3bR7W17sAvY1ucYQCLcBGAs/s1600/dagon-demo-dwarf.jpg)
+
 Prerequisites
 -------------
 To run the demo, a number of libraries should be installed, namely SDL 2.0.8 and Freetype 2.8.1. We provide libraries for 32 and 64-bit Windows.
