@@ -21,6 +21,8 @@
 
     "sourcePaths": ["src"],
     "mainSourceFile": "src/main.d",
+    
+    "sourceFiles-windows" : ["application.res"],
 
     "configurations": [
         {
