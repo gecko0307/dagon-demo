@@ -255,8 +255,6 @@ class TestScene: Scene
         environment.fogEnd = 10000.0f;
         //environment.environmentMap = aEnvmap.texture;
         
-        shadowMap.shadowBrightness = 0.1f;
-        
         // Camera and view
         auto eCamera = createEntity3D();
         eCamera.position = Vector3f(25.0f, 5.0f, 0.0f);
