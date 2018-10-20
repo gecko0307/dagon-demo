@@ -264,7 +264,7 @@ class TestScene: Scene
         
         // Post-processing settings
         hdr.autoExposure = true;
-        //ssao.enabled = true;
+        ssao.enabled = true;
         motionBlur.enabled = true;
         motionBlur.shutterSpeed = 1.0 / 24.0;
         motionBlur.samples = 30;
