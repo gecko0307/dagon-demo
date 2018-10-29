@@ -266,8 +266,6 @@ class TestScene: Scene
         hdr.autoExposure = true;
         ssao.enabled = true;
         motionBlur.enabled = true;
-        motionBlur.shutterSpeed = 1.0 / 24.0;
-        motionBlur.samples = 30;
         glow.enabled = true;
         glow.brightness = 1.0;
         glow.radius = 10;
