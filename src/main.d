@@ -414,7 +414,7 @@ class TestScene: Scene
         auto chimney = aScene.entity("obChimney.entity");
         if (chimney)
             pos = chimney.absolutePosition;
-            
+    
         auto eParticlesTest = createEntity3D();
         auto emitterSmoke = New!Emitter(eParticlesTest, particleSystem, 50);
         emitterSmoke.material = mParticlesSmoke;
@@ -433,7 +433,7 @@ class TestScene: Scene
         auto eVortex = createEntity3D();
         eVortex.position = Vector3f(0, 0, -10);
         auto vortex = New!Vortex(eVortex, particleSystem, 1.0f, 1.0f);
-        
+    /*    
         // Dust particle systems
         auto mParticlesDust = createParticleMaterial();
         mParticlesDust.diffuse = aTexParticleDust.texture;
@@ -467,7 +467,7 @@ class TestScene: Scene
         emitterLeft.material = mParticlesDust;
         eParticlesLeft.layer = 3;
         eParticlesLeft.visible = true;
-
+    */
         // HUD text
         helpText = New!TextLine(aFontDroidSans14.font, helpTextFirstPerson, assetManager);
         helpText.color = Color4f(1.0f, 1.0f, 1.0f, 0.7f);
@@ -660,10 +660,12 @@ class TestScene: Scene
                 vehicle.resetSteering();
         }
         
+        /*
         if (vehicle.wheels[2].isDrifting) emitterLeft.emitting = true;
         else emitterLeft.emitting = false;
         if (vehicle.wheels[3].isDrifting) emitterRight.emitting = true;
         else emitterRight.emitting = false;
+        */
         
         vehicle.fixedStepUpdate(dt);
         
