@@ -263,7 +263,7 @@ class TestScene: Scene
         view = fpview;
         
         // Post-processing settings
-        hdr.autoExposure = true;
+        hdr.autoExposure = false;
         ssao.enabled = true;
         motionBlur.enabled = true;
         glow.enabled = true;
@@ -433,7 +433,7 @@ class TestScene: Scene
         auto eVortex = createEntity3D();
         eVortex.position = Vector3f(0, 0, -10);
         auto vortex = New!Vortex(eVortex, particleSystem, 1.0f, 1.0f);
-    /*    
+        
         // Dust particle systems
         auto mParticlesDust = createParticleMaterial();
         mParticlesDust.diffuse = aTexParticleDust.texture;
@@ -453,7 +453,7 @@ class TestScene: Scene
         emitterRight.material = mParticlesDust;
         eParticlesRight.layer = 3;
         eParticlesRight.visible = true;
-
+        
         auto eParticlesLeft = createEntity3D(eCar);
         emitterLeft = New!Emitter(eParticlesLeft, particleSystem, 20);
         eParticlesLeft.position = Vector3f(1.2f, 0, -2.8f);
@@ -467,7 +467,7 @@ class TestScene: Scene
         emitterLeft.material = mParticlesDust;
         eParticlesLeft.layer = 3;
         eParticlesLeft.visible = true;
-    */
+        
         // HUD text
         helpText = New!TextLine(aFontDroidSans14.font, helpTextFirstPerson, assetManager);
         helpText.color = Color4f(1.0f, 1.0f, 1.0f, 0.7f);
@@ -660,12 +660,10 @@ class TestScene: Scene
                 vehicle.resetSteering();
         }
         
-        /*
         if (vehicle.wheels[2].isDrifting) emitterLeft.emitting = true;
         else emitterLeft.emitting = false;
         if (vehicle.wheels[3].isDrifting) emitterRight.emitting = true;
         else emitterRight.emitting = false;
-        */
         
         vehicle.fixedStepUpdate(dt);
         
