@@ -150,7 +150,7 @@ class TestScene: Scene
     
     ShapeSphere sSphere;
 
-    ShadelessBackend shadelessMatBackend;
+    //ShadelessBackend shadelessMatBackend;
     
     float sunPitch = -45.0f;
     float sunTurn = 10.0f;
@@ -201,7 +201,7 @@ class TestScene: Scene
     bool joystickButtonAPressed;
     bool joystickButtonBPressed;
     
-    GenericMaterialBackend matBackend;
+    //GenericMaterialBackend matBackend;
 
     this(SceneManager smngr)
     {
@@ -276,7 +276,7 @@ class TestScene: Scene
         vignette.texture = aTexVignette.texture;
         
         // Material backends
-        shadelessMatBackend = New!ShadelessBackend(assetManager);
+        //shadelessMatBackend = New!ShadelessBackend(assetManager);
         
         // Common materials
         auto matDefault = createMaterial();
