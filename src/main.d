@@ -265,6 +265,7 @@ class TestScene: Scene
         // Post-processing settings
         hdr.autoExposure = false;
         ssao.enabled = true;
+        ssao.power = 10.0;
         motionBlur.enabled = true;
         glow.enabled = true;
         glow.brightness = 1.0;
