@@ -576,7 +576,7 @@ class TestScene: Scene
         {
             Vector3f pos = fpview.camera.position + fpview.camera.characterMatrix.forward * -2.0f + Vector3f(0, 1, 0);
             Color4f color = lightColors[uniform(0, lightColors.length)];
-            createLightBall(pos, color, 10.0f, lightBallRadius, 5.0f);
+            createLightBall(pos, color, 50.0f, lightBallRadius, 5.0f);
         }
     }
     
