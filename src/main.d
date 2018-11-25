@@ -149,8 +149,6 @@ class TestScene: Scene
     PackageAsset aScene;
     
     ShapeSphere sSphere;
-
-    //ShadelessBackend shadelessMatBackend;
     
     float sunPitch = -45.0f;
     float sunTurn = 10.0f;
@@ -247,14 +245,7 @@ class TestScene: Scene
     override void onAllocate()
     {
         super.onAllocate();
-        
-        // Environment settings
-        environment.useSkyColors = true;
-        environment.atmosphericFog = true;
-        environment.fogStart = 0.0f;
-        environment.fogEnd = 10000.0f;
-        //environment.environmentMap = aEnvmap.texture;
-        
+
         // Camera and view
         auto eCamera = createEntity3D();
         eCamera.position = Vector3f(25.0f, 5.0f, 0.0f);
@@ -262,11 +253,15 @@ class TestScene: Scene
         fpview.camera.turn = -90.0f;
         view = fpview;
         
-        // Post-processing settings
+        // Post-processing settings        
+        hdr.tonemapper = Tonemapper.ACES;
         hdr.autoExposure = false;
+        hdr.exposure = 0.25f;
         ssao.enabled = true;
         ssao.power = 10.0;
         motionBlur.enabled = true;
+        motionBlur.shutterSpeed = 1.0 / 60.0;
+        motionBlur.samples = 30;
         glow.enabled = true;
         glow.brightness = 1.0;
         glow.radius = 10;
@@ -274,10 +269,6 @@ class TestScene: Scene
         lensDistortion.dispersion = 0.1;
         antiAliasing.enabled = true;
         lut.texture = aTexColorTable.texture;
-        vignette.texture = aTexVignette.texture;
-        
-        // Material backends
-        //shadelessMatBackend = New!ShadelessBackend(assetManager);
         
         // Common materials
         auto matDefault = createMaterial();
@@ -309,7 +300,9 @@ class TestScene: Scene
         matWheel.metallic = 0.0f;
         
         // Sky entity
-        eSky = createSky();
+        auto rRayleighShader = New!RayleighShader(assetManager);
+        auto mySky = createMaterial(rRayleighShader);
+        eSky = createSky(mySky);
         
         // Dwarf entity (animated model)
         actor = New!Actor(iqm.model, assetManager);
@@ -320,7 +313,6 @@ class TestScene: Scene
         matDwarf.roughness = 0.8f;
         eDwarf.material = matDwarf;
         eDwarf.position.x = 8.0f;
-        //eDwarf.rotation = rotationQuaternion(Axis.y, degtorad(-90.0f));
         eDwarf.scaling = Vector3f(0.04, 0.04, 0.04);
         eDwarf.defaultController.swapZY = true;
         
