@@ -31,6 +31,7 @@ import std.stdio;
 import std.math;
 import std.random;
 import std.algorithm;
+import std.file;
 
 import dagon;
 
@@ -256,7 +257,7 @@ class TestScene: Scene
         // Post-processing settings        
         hdr.tonemapper = Tonemapper.ACES;
         hdr.autoExposure = false;
-        hdr.exposure = 0.25f;
+        hdr.exposure = 0.2f;
         ssao.enabled = true;
         ssao.power = 10.0;
         motionBlur.enabled = true;
@@ -540,6 +541,26 @@ class TestScene: Scene
             else
                 environment.environmentMap = null;
         }
+        else if (key == KEY_F12)
+        {
+            takeScreenshot();
+        }
+    }
+    
+    uint numScreenshots = 1;
+    char[100] screenshotFilenameBuffer;
+    void takeScreenshot()
+    {
+        string filename;
+        do
+        {
+            uint n = sprintf(screenshotFilenameBuffer.ptr, "screenshot%03x.png", numScreenshots);
+            filename = cast(string)screenshotFilenameBuffer[0..n];
+            numScreenshots++;
+        }
+        while(exists(filename));
+        
+        sceneManager.application.saveScreenshot(filename);
     }
     
     override void onMouseButtonDown(int button)
