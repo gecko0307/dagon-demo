@@ -445,6 +445,7 @@ class TestScene: Scene
         emitterRight.maxInitialSpeed = 0.2f;
         emitterRight.scaleStep = Vector2f(1, 1);
         emitterRight.material = mParticlesDust;
+        eParticlesRight.castShadow = false;
         eParticlesRight.layer = 3;
         eParticlesRight.visible = true;
         
@@ -459,6 +460,7 @@ class TestScene: Scene
         emitterLeft.maxInitialSpeed = 0.2f;
         emitterLeft.scaleStep = Vector2f(1, 1);
         emitterLeft.material = mParticlesDust;
+        eParticlesLeft.castShadow = false;
         eParticlesLeft.layer = 3;
         eParticlesLeft.visible = true;
         
@@ -595,7 +597,7 @@ class TestScene: Scene
     
     Entity createLightBall(Vector3f pos, Color4f color, float energy, float areaRadius, float volumeRadius)
     {
-        auto light = createLight(pos, color, energy, volumeRadius, areaRadius);
+        auto light = createLightSphere(pos, color, energy, volumeRadius, areaRadius);
             
         if (light)
         {

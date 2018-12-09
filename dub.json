@@ -12,7 +12,7 @@
     ],
 
     "dependencies": {
-        "dagon": "0.9.2"
+        "dagon": "~master"
     },
 
     "buildRequirements":[
