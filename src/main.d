@@ -264,8 +264,7 @@ class TestScene: Scene
         motionBlur.shutterSpeed = 1.0 / 60.0;
         motionBlur.samples = 30;
         glow.enabled = true;
-        glow.brightness = 1.0;
-        glow.radius = 10;
+        glow.radius = 8;
         lensDistortion.enabled = true;
         lensDistortion.dispersion = 0.1;
         antiAliasing.enabled = true;
