@@ -759,11 +759,9 @@ class MyApplication: SceneApplication
 {
     this(string[] args)
     {
-        super(1280, 720, false, "Dagon demo", args);
-
+        super("Dagon demo", args);
         TestScene test = New!TestScene(sceneManager);
         sceneManager.addScene(test, "TestScene");
-
         sceneManager.goToScene("TestScene");
     }
 }
