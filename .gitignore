@@ -1,7 +1,27 @@
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
 
-\.dub/
+# Compiled Static libraries
+*.a
+*.lib
 
-dub\.selections\.json
-
-dagondemo
+# Executables
 *.exe
+dagondemo
+
+# DUB
+.dub
+docs.json
+dub.selections.json
+__dummy.html
+__test__library__
+tests
+docs/
+
+# Code coverage
+*.lst
+
+# Backup files
+*~
