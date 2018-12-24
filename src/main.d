@@ -598,7 +598,7 @@ class TestScene: Scene
     
     Entity createLightBall(Vector3f pos, Color4f color, float energy, float areaRadius, float volumeRadius)
     {
-        auto light = createLightSphere(pos, color, energy, volumeRadius, areaRadius);
+        auto light = createLightSphere(pos, color, energy * 5, volumeRadius, areaRadius);
             
         if (light)
         {
@@ -703,7 +703,7 @@ class TestScene: Scene
     }
     
     char[100] lightsText;
-    
+        
     override void onLogicsUpdate(double dt)
     {
         // Update our character, vehicle and physics
