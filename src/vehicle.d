@@ -423,10 +423,12 @@ class CarView: EventListener, View
     Matrix4x4f _trans;
     Matrix4x4f _invTrans;
     
-    int prevMouseX;
-    int prevMouseY;
+    int oldMouseX;
+    int oldMouseY;
     
     bool _active = true;
+    
+    float mouseSensibility = 0.1f;
 
     this(EventManager emngr, VehicleController vehicle, Owner owner)
     {
@@ -441,14 +443,15 @@ class CarView: EventListener, View
     {
         if (v)
         {
-            prevMouseX = eventManager.mouseX;
-            prevMouseY = eventManager.mouseY;
-            SDL_SetRelativeMouseMode(SDL_TRUE);
+            oldMouseX = eventManager.windowWidth / 2;
+            oldMouseY = eventManager.windowHeight / 2;
+            eventManager.setMouse(oldMouseX, oldMouseY);
+            eventManager.showCursor(false);
         }
         else
         {
-            SDL_SetRelativeMouseMode(SDL_FALSE);
-            eventManager.setMouse(prevMouseX, prevMouseY);
+            eventManager.showCursor(true);
+            eventManager.setMouse(oldMouseX, oldMouseY);
         }
         
         _active = v;
@@ -465,12 +468,14 @@ class CarView: EventListener, View
         
         if (_active)
         {  
-            float turn_m =  (eventManager.mouseRelX) * 0.1f;
-            float pitch_m = (eventManager.mouseRelY) * 0.1f;
+            float turn_m =  (eventManager.mouseX - oldMouseX) * mouseSensibility;
+            float pitch_m = (eventManager.mouseY - oldMouseY) * mouseSensibility;
             
             auto q = rotationQuaternion!float(Axis.y, turn_m * dt) * 
                      rotationQuaternion!float(Axis.x, pitch_m * dt);
             offset = q.rotate(offset);
+            
+            eventManager.setMouse(oldMouseX, oldMouseY);
         }
         
         Vector3f tp = vehicle.position + vehicle.rotation.rotate(offset) * 6.0f;

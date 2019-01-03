@@ -251,6 +251,7 @@ class TestScene: Scene
         eCamera.position = Vector3f(25.0f, 5.0f, 0.0f);
         fpview = New!FirstPersonView(eventManager, eCamera, assetManager);
         fpview.camera.turn = -90.0f;
+        fpview.mouseSensibility = config.props.mouseSensibility.toFloat;
         view = fpview;
         
         // Post-processing settings        
@@ -394,6 +395,7 @@ class TestScene: Scene
         }
         
         carView = New!CarView(eventManager, vehicle, assetManager);
+        carView.mouseSensibility = config.props.mouseSensibility.toFloat;
         carViewEnabled = false;
         
         // Smoke particle system with color changer and vortex
@@ -516,7 +518,6 @@ class TestScene: Scene
     {
         if (key == KEY_ESCAPE)
         {
-            SDL_SetRelativeMouseMode(SDL_FALSE);
             exitApplication();
         }
         else if (key == KEY_E)
@@ -524,6 +525,8 @@ class TestScene: Scene
             if (carViewEnabled)
             {
                 view = fpview;
+                carView.active = false;
+                fpview.active = true;
                 carViewEnabled = false;
                 character.rbody.active = true;
                 character.rbody.position = vehicle.rbody.position + vehicle.rbody.orientation.rotate(Vector3f(1.0f, 0.0f, 0.0f).normalized) * 4.0f + Vector3f(0, 3, 0);
@@ -532,6 +535,8 @@ class TestScene: Scene
             else if (distance(fpview.cameraPosition, vehicle.rbody.position) <= 4.0f)
             {
                 view = carView;
+                fpview.active = false;
+                carView.active = true;
                 carViewEnabled = true;
                 character.rbody.active = false;
                 helpText.text = helpTextVehicle;
