@@ -8,7 +8,7 @@ If you like Dagon, please support its development on [Patreon](https://www.patre
 
 [https://www.youtube.com/watch?v=UhQfMkObTEs](https://www.youtube.com/watch?v=UhQfMkObTEs)
 
-[![Screenshot4](https://1.bp.blogspot.com/-o8H1blpZeFQ/W78a-nttgrI/AAAAAAAADrc/LPZZ4j_A5jIye0hib3bR7W17sAvY1ucYQCLcBGAs/s1600/dagon-demo-dwarf.jpg)](https://1.bp.blogspot.com/-o8H1blpZeFQ/W78a-nttgrI/AAAAAAAADrc/LPZZ4j_A5jIye0hib3bR7W17sAvY1ucYQCLcBGAs/s1600/dagon-demo-dwarf.jpg)
+[![Screenshot](https://3.bp.blogspot.com/-V6Q5Mrg1xU4/XCpgXCyZUuI/AAAAAAAADy8/NFgIfBlOsvs2BqkppjZHecVbu_9OSCW6wCLcBGAs/s1600/car.jpg)](https://3.bp.blogspot.com/-V6Q5Mrg1xU4/XCpgXCyZUuI/AAAAAAAADy8/NFgIfBlOsvs2BqkppjZHecVbu_9OSCW6wCLcBGAs/s1600/car.jpg)
 
 Prerequisites
 -------------
