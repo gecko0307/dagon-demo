@@ -63,9 +63,19 @@ void collectEntityTrisRecursive(Entity e, ref DynamicArray!Triangle tris)
 {
     if (e.solid && e.drawable)
     {
+        e.update(0.0);
         Matrix4x4f normalMatrix = e.invAbsoluteTransformation.transposed;
     
         Mesh mesh = cast(Mesh)e.drawable;
+        if (mesh is null)
+        {
+            Terrain t = cast(Terrain)e.drawable;
+            if (t)
+            {
+                mesh = t.collisionMesh;
+            }
+        }
+        
         if (mesh)
         {
             foreach(tri; mesh)
@@ -136,6 +146,8 @@ class TestScene: Scene
     TextureAsset aTexVignette;
     
     TextureAsset aTexDwarf;
+    
+    TextureAsset aHeightmap;
 
     OBJAsset aCrate;
     
@@ -212,10 +224,10 @@ class TestScene: Scene
         
         aEnvmap = addTextureAsset("data/hdri/the_sky_is_on_fire_1k.hdr");
         
-        aTexGroundDiffuse = addTextureAsset("data/textures/ground-albedo.png");
-        aTexGroundNormal = addTextureAsset("data/textures/ground-normal.png");
-        aTexGroundHeight = addTextureAsset("data/textures/ground-height.png");
-        aTexGroundRoughness = addTextureAsset("data/textures/ground-roughness.png");
+        aTexGroundDiffuse = addTextureAsset("data/terrain/desert-albedo.png");
+        aTexGroundNormal = addTextureAsset("data/terrain/desert-normal.png");
+        aTexGroundHeight = addTextureAsset("data/terrain/desert-height.png");
+        aTexGroundRoughness = addTextureAsset("data/terrain/desert-roughness.png");
         
         aTexCrateDiffuse = addTextureAsset("data/textures/crate.png");
         
@@ -240,6 +252,8 @@ class TestScene: Scene
         aTexVignette = addTextureAsset("data/vignette.png");
         
         aTexDwarf = addTextureAsset("data/iqm/dwarf.jpg");
+        
+        aHeightmap = addTextureAsset("data/terrain/heightmap.png");
     }
 
     override void onAllocate()
@@ -285,6 +299,7 @@ class TestScene: Scene
         mGround.height = aTexGroundHeight.texture;
         mGround.roughness = aTexGroundRoughness.texture;
         mGround.parallax = ParallaxSimple;
+        mGround.textureScale = Vector2f(25, 25);
         
         auto mCrate = createMaterial();
         mCrate.diffuse = aTexCrateDiffuse.texture;
@@ -319,6 +334,18 @@ class TestScene: Scene
         eDwarf.scaling = Vector3f(0.04, 0.04, 0.04);
         eDwarf.defaultController.swapZY = true;
         
+        // Terrain
+        auto eTerrain = createEntity3D();
+        //eTerrain.scaling = Vector3f(0.5, 0.25, 0.5);
+        auto heightmap = New!ImageHeightmap(aHeightmap.texture.image, 20, assetManager);
+        auto terrain = New!Terrain(256, heightmap, assetManager);
+        Vector3f size = Vector3f(256, 0, 256) * eTerrain.scaling;
+        eTerrain.drawable = terrain;
+        //eTerrain.castShadow = false;
+        eTerrain.position = Vector3f(-size.x * 0.5, 0, -size.z * 0.5);
+        eTerrain.solid = true;
+        eTerrain.material = mGround;
+        
         // Root entity from aScene
         Entity sceneEntity = addEntity3D(aScene.entity);
         
@@ -334,11 +361,11 @@ class TestScene: Scene
         // Ground plane
         RigidBody bGround = world.addStaticBody(Vector3f(0.0f, 0.0f, 0.0f));
         auto gGround = New!GeomBox(world, Vector3f(100.0f, 1.0f, 100.0f));
-        world.addShapeComponent(bGround, gGround, Vector3f(0.0f, -1.0f, 0.0f), 1.0f);
-        auto eGround = createEntity3D();
-        eGround.drawable = New!ShapePlane(200, 200, 100, assetManager);
-        eGround.material = mGround;
-        eGround.castShadow = false;
+        world.addShapeComponent(bGround, gGround, Vector3f(0.0f, -2.0f, 0.0f), 1.0f);
+        //auto eGround = createEntity3D();
+        //eGround.drawable = New!ShapePlane(200, 200, 100, assetManager);
+        //eGround.material = mGround;
+        //eGround.castShadow = false;
 
         // dmech geometries for dynamic objects
         gLightBall = New!GeomSphere(world, lightBallRadius);
@@ -651,7 +678,7 @@ class TestScene: Scene
 
     void updateVehicle(double dt)
     {
-        float accelerate = 1000.0f;
+        float accelerate = 500.0f;
     
         if (eventManager.keyPressed[KEY_Z])
             vehicle.accelerateForward(accelerate);
