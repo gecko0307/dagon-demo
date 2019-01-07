@@ -478,7 +478,7 @@ class CarView: EventListener, View
             eventManager.setMouse(oldMouseX, oldMouseY);
         }
         
-        Vector3f tp = vehicle.position + vehicle.rotation.rotate(offset) * 10.0f;
+        Vector3f tp = vehicle.position + vehicle.rotation.rotate(offset) * 8.0f;
         tp.y = vehicle.position.y + 3.0f;
         Vector3f d = tp - position;
         position += (d * 10.0f) * dt;
