@@ -65,8 +65,8 @@ class Wheel: Owner
         suspPosition = pos;
         forcePosition = Vector3f(0.0f, 0.0f, 0.0f);
         radius = 0.55f;
-        suspStiffness = 15000.0f;
-        suspDamping = 2000.0f;
+        suspStiffness = 25000.0f;
+        suspDamping = 5000.0f;
         suspCompression = 0.0f;
         suspLength = 0.0f;
         suspLengthPrev = 0.0f;
@@ -95,8 +95,8 @@ class VehicleController: EntityController
     Wheel[4] wheels; // TODO: use dynamic array and let the user create wheels
     float torqueAcc;
     bool brake = false;
-    float maxForwardTorque = 20000.0f;
-    float maxBackwardTorque = 10000.0f;
+    float maxForwardTorque = 10000.0f;
+    float maxBackwardTorque = 5000.0f;
     float speed = 0.0f;
 
     this(Entity e, RigidBody b, PhysicsWorld w)
@@ -478,7 +478,7 @@ class CarView: EventListener, View
             eventManager.setMouse(oldMouseX, oldMouseY);
         }
         
-        Vector3f tp = vehicle.position + vehicle.rotation.rotate(offset) * 6.0f;
+        Vector3f tp = vehicle.position + vehicle.rotation.rotate(offset) * 10.0f;
         tp.y = vehicle.position.y + 3.0f;
         Vector3f d = tp - position;
         position += (d * 10.0f) * dt;

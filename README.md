@@ -2,7 +2,7 @@ Dagon Demo Application
 ======================
 This is a test application that demonstrates features of [Dagon](https://github.com/gecko0307/dagon) game framework. 
 
-The demo shows how to load static and animated meshes, assign materials and textures, create lights, integrate a physics engine ([dmech](https://github.com/gecko0307/dmech) is this case), render 2D text and much more. It includes game-ready character controller and vehicle. The demo can be used as a base for a first person shooter or a racing game.
+The demo shows how to load static and animated meshes, create terrain, assign materials and textures, create lights, integrate a physics engine ([dmech](https://github.com/gecko0307/dmech) is this case), render 2D text and much more. It includes game-ready character controller and vehicle. The demo can be used as a base for a first person shooter or a racing game.
 
 If you like Dagon, please support its development on [Patreon](https://www.patreon.com/gecko0307) or [Liberapay](https://liberapay.com/gecko0307). You can also make one-time donation via [PayPal](https://www.paypal.me/tgafarov). I appreciate any support. Thanks in advance!
 
