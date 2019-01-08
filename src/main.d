@@ -402,13 +402,13 @@ class TestScene: Scene
         eCar.position = Vector3f(30.0f, 5.0f, 0.0f);
         eCar.layer = 2;
         
-        auto gBox = New!GeomBox(world, Vector3f(1.3f, 0.7f, 2.8f));
+        auto gBox = New!GeomBox(world, Vector3f(1.3f, 0.65f, 2.8f));
         auto b = world.addDynamicBody(Vector3f(0, 0, 0), 0.0f);
         b.damping = 0.6f;
         vehicle = New!VehicleController(eCar, b, world);
         eCar.controller = vehicle;
         world.addShapeComponent(b, gBox, Vector3f(0.0f, 0.8f, 0.0f), 1500.0f);
-        b.centerOfMass.y = 0.1f; // Artifically lowered center of mass
+        b.centerOfMass.y = -0.2f; // Artifically lowered center of mass
         b.centerOfMass.z = 0.25f;
         
         foreach(i, ref w; eWheels)
