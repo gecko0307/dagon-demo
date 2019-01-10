@@ -259,6 +259,8 @@ class TestScene: Scene
     override void onAllocate()
     {
         super.onAllocate();
+        
+        environment.sunEnergy = 50.0f;
 
         // Camera and view
         auto eCamera = createEntity3D();
