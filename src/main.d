@@ -65,7 +65,7 @@ void collectEntityTrisRecursive(Entity e, ref DynamicArray!Triangle tris)
     {
         e.update(0.0);
         Matrix4x4f normalMatrix = e.invAbsoluteTransformation.transposed;
-    
+
         Mesh mesh = cast(Mesh)e.drawable;
         if (mesh is null)
         {
@@ -75,7 +75,7 @@ void collectEntityTrisRecursive(Entity e, ref DynamicArray!Triangle tris)
                 mesh = t.collisionMesh;
             }
         }
-        
+
         if (mesh)
         {
             foreach(tri; mesh)
@@ -84,12 +84,12 @@ void collectEntityTrisRecursive(Entity e, ref DynamicArray!Triangle tris)
                 Vector3f v2 = tri.v[1];
                 Vector3f v3 = tri.v[2];
                 Vector3f n = tri.normal;
-                
+
                 v1 = v1 * e.absoluteTransformation;
                 v2 = v2 * e.absoluteTransformation;
                 v3 = v3 * e.absoluteTransformation;
                 n = n * normalMatrix;
-            
+
                 Triangle tri2 = tri;
                 tri2.v[0] = v1;
                 tri2.v[1] = v2;
@@ -100,7 +100,7 @@ void collectEntityTrisRecursive(Entity e, ref DynamicArray!Triangle tris)
             }
         }
     }
-    
+
     foreach(c; e.children)
         collectEntityTrisRecursive(c, tris);
 }
@@ -111,7 +111,7 @@ BVHTree!Triangle entitiesToBVH(Entity[] entities)
 
     foreach(e; entities)
         collectEntityTrisRecursive(e, tris);
-    
+
     if (tris.length)
     {
         BVHTree!Triangle bvh = New!(BVHTree!Triangle)(tris, 4);
@@ -125,14 +125,14 @@ BVHTree!Triangle entitiesToBVH(Entity[] entities)
 class TestScene: Scene
 {
     FontAsset aFontDroidSans14;
-    
+
     TextureAsset aEnvmap;
-    
+
     TextureAsset aTexGroundDiffuse;
     TextureAsset aTexGroundNormal;
     TextureAsset aTexGroundHeight;
     TextureAsset aTexGroundRoughness;
-    
+
     TextureAsset aTexCrateDiffuse;
 
     TextureAsset aTexParticleSmoke;
@@ -141,63 +141,63 @@ class TestScene: Scene
 
     TextureAsset aTexCarTyreDiffuse;
     TextureAsset aTexCarTyreNormal;
-    
+
     TextureAsset aTexColorTable;
     TextureAsset aTexVignette;
-    
+
     TextureAsset aTexDwarf;
-    
+
     TextureAsset aHeightmap;
 
     OBJAsset aCrate;
-    
+
     PackageAsset aCar;
     OBJAsset aCarDisk;
     OBJAsset aCarTyre;
-    
+
     IQMAsset iqm;
     Entity eDwarf;
     Actor actor;
-    
+
     PackageAsset aScene;
-    
+
     ShapeSphere sSphere;
-    
+
     float sunPitch = -45.0f;
     float sunTurn = 10.0f;
-    
+
     FirstPersonView fpview;
     CarView carView;
     bool carViewEnabled = false;
-    
+
     Entity eSky;
-    
+
     PhysicsWorld world;
     RigidBody bGround;
     float lightBallRadius = 0.5f;
     Geometry gLightBall;
     CharacterController character;
     VehicleController vehicle;
-    
+
     BVHTree!Triangle bvh;
     bool haveBVH = false;
-    
-    Entity eCar;   
+
+    Entity eCar;
     Entity[4] eWheels;
     Entity[4] eTyres;
-    
+
     Emitter emitterLeft;
     Emitter emitterRight;
 
     string helpTextFirstPerson = "Press <LMB> to switch mouse look, WASD to move, spacebar to jump, <RMB> to create a light, arrow keys to rotate the sun";
     string helpTextVehicle = "Press W/S to accelerate forward/backward, A/D to steer, E to get out of the car";
-    
+
     TextLine helpText;
     TextLine infoText;
     TextLine messageText;
-    
+
     Entity eMessage;
-  
+
     Color4f[7] lightColors = [
         Color4f(1, 0.1, 0.1, 1),
         Color4f(1, 0.5, 0.1, 1),
@@ -210,7 +210,7 @@ class TestScene: Scene
 
     bool joystickButtonAPressed;
     bool joystickButtonBPressed;
-    
+
     //GenericMaterialBackend matBackend;
 
     this(SceneManager smngr)
@@ -221,38 +221,38 @@ class TestScene: Scene
     override void onAssetsRequest()
     {
         aFontDroidSans14 = addFontAsset("data/font/DroidSans.ttf", 14);
-        
+
         aEnvmap = addTextureAsset("data/hdri/the_sky_is_on_fire_1k.hdr");
-        
+
         aTexGroundDiffuse = addTextureAsset("data/terrain/desert-albedo.png");
         aTexGroundNormal = addTextureAsset("data/terrain/desert-normal.png");
         aTexGroundHeight = addTextureAsset("data/terrain/desert-height.png");
         aTexGroundRoughness = addTextureAsset("data/terrain/desert-roughness.png");
-        
+
         aTexCrateDiffuse = addTextureAsset("data/textures/crate.png");
-        
+
         aTexParticleSmoke = addTextureAsset("data/textures/smoke.png");
         aTexParticleDust = addTextureAsset("data/textures/dust.png");
         aTexParticleDustNormal = addTextureAsset("data/textures/dust-normal.png");
-        
+
         aCrate = addOBJAsset("data/obj/crate.obj");
-        
+
         assetManager.mountDirectory("data/iqm");
         iqm = addIQMAsset("data/iqm/dwarf.iqm");
-        
+
         aScene = addPackageAsset("data/village/village.asset");
-        
+
         aCar = addPackageAsset("data/car/car.asset");
         aCarDisk = addOBJAsset("data/car/ac-cobra-disk.obj");
         aCarTyre = addOBJAsset("data/car/ac-cobra-tyre.obj");
         aTexCarTyreDiffuse = addTextureAsset("data/car/ac-cobra-wheel.png");
         aTexCarTyreNormal = addTextureAsset("data/car/ac-cobra-wheel-normal.png");
-        
+
         aTexColorTable = addTextureAsset("data/colortables/filter1.png");
         aTexVignette = addTextureAsset("data/vignette.png");
-        
+
         aTexDwarf = addTextureAsset("data/iqm/dwarf.jpg");
-        
+
         aHeightmap = addTextureAsset("data/terrain/heightmap.png");
     }
 
@@ -267,26 +267,26 @@ class TestScene: Scene
         fpview.camera.turn = -90.0f;
         fpview.mouseSensibility = config.props.mouseSensibility.toFloat;
         view = fpview;
-        
-        // Post-processing settings        
-        hdr.tonemapper = Tonemapper.ACES;
-        hdr.autoExposure = false;
-        hdr.exposure = 0.2f;
-        ssao.enabled = true;
-        ssao.power = 10.0;
-        motionBlur.enabled = true;
-        motionBlur.shutterSpeed = 1.0 / 60.0;
-        motionBlur.samples = 30;
-        glow.enabled = true;
-        glow.radius = 8;
-        glow.brightness = 0.5;
-        glow.minLuminanceThreshold = 0.0;
-        glow.maxLuminanceThreshold = 5.0;
-        //lensDistortion.enabled = true;
-        //lensDistortion.dispersion = 0.1;
-        antiAliasing.enabled = true;
-        lut.texture = aTexColorTable.texture;
-        
+
+        // Post-processing settings
+        renderer.hdr.tonemapper = Tonemapper.ACES;
+        renderer.hdr.autoExposure = false;
+        renderer.hdr.exposure = 0.2f;
+        renderer.ssao.enabled = true;
+        renderer.ssao.power = 10.0;
+        renderer.motionBlur.enabled = true;
+        renderer.motionBlur.shutterSpeed = 1.0 / 60.0;
+        renderer.motionBlur.samples = 30;
+        renderer.glow.enabled = true;
+        renderer.glow.radius = 8;
+        renderer.glow.brightness = 0.5;
+        renderer.glow.minLuminanceThreshold = 0.0;
+        renderer.glow.maxLuminanceThreshold = 5.0;
+        //renderer.lensDistortion.enabled = true;
+        //renderer.lensDistortion.dispersion = 0.1;
+        renderer.antiAliasing.enabled = true;
+        renderer.lut.texture = aTexColorTable.texture;
+
         // Common materials
         auto matDefault = createMaterial();
         matDefault.roughness = 0.9f;
@@ -300,12 +300,12 @@ class TestScene: Scene
         mGround.roughness = aTexGroundRoughness.texture;
         mGround.parallax = ParallaxSimple;
         mGround.textureScale = Vector2f(25, 25);
-        
+
         auto mCrate = createMaterial();
         mCrate.diffuse = aTexCrateDiffuse.texture;
         mCrate.roughness = 0.9f;
         mCrate.metallic = 0.0f;
-        
+
         auto matChrome = createMaterial();
         matChrome.diffuse = Color4f(1.0f, 1.0f, 1.0f, 1.0f);
         matChrome.roughness = 0.1f;
@@ -316,12 +316,12 @@ class TestScene: Scene
         matWheel.normal = aTexCarTyreNormal.texture;
         matWheel.roughness = 0.6f;
         matWheel.metallic = 0.0f;
-        
+
         // Sky entity
         auto rRayleighShader = New!RayleighShader(assetManager);
         auto mySky = createMaterial(rRayleighShader);
         eSky = createSky(mySky);
-        
+
         // Dwarf entity (animated model)
         actor = New!Actor(iqm.model, assetManager);
         eDwarf = createEntity3D();
@@ -334,7 +334,7 @@ class TestScene: Scene
         eDwarf.position.y = 0.3f;
         eDwarf.scaling = Vector3f(0.04, 0.04, 0.04);
         eDwarf.defaultController.swapZY = true;
-        
+
         // Terrain
         auto eTerrain = createEntity3D();
         //eTerrain.scaling = Vector3f(0.5, 0.25, 0.5);
@@ -346,11 +346,11 @@ class TestScene: Scene
         eTerrain.position = Vector3f(-size.x * 0.5, 0, -size.z * 0.5);
         eTerrain.solid = true;
         eTerrain.material = mGround;
-        
+
         // Root entity from aScene
         Entity sceneEntity = addEntity3D(aScene.entity);
-        
-        // Physics world 
+
+        // Physics world
         world = New!PhysicsWorld(assetManager);
 
         // BVH for castle model to handle collisions
@@ -358,7 +358,7 @@ class TestScene: Scene
         haveBVH = true;
         if (bvh)
             world.bvhRoot = bvh.root;
-        
+
         // Ground plane
         RigidBody bGround = world.addStaticBody(Vector3f(0.0f, 0.0f, 0.0f));
         auto gGround = New!GeomBox(world, Vector3f(100.0f, 1.0f, 100.0f));
@@ -372,7 +372,7 @@ class TestScene: Scene
         gLightBall = New!GeomSphere(world, lightBallRadius);
         auto gSphere = New!GeomEllipsoid(world, Vector3f(0.9f, 1.0f, 0.9f));
         sSphere = New!ShapeSphere(1.0f, 24, 16, false, assetManager);
-        
+
         // Character controller
         auto eCharacter = createEntity3D();
         eCharacter.position = fpview.camera.position;
@@ -382,7 +382,7 @@ class TestScene: Scene
 
         // Crates
         auto gCrate = New!GeomBox(world, Vector3f(0.5f, 0.5f, 0.5f));
-        
+
         foreach(i; 0..5)
         {
             auto eCrate = createEntity3D();
@@ -398,10 +398,10 @@ class TestScene: Scene
 
         // Car
         eCar = createEntity3D();
-        eCar.drawable = aCar.entity; 
+        eCar.drawable = aCar.entity;
         eCar.position = Vector3f(30.0f, 5.0f, 0.0f);
         eCar.layer = 2;
-        
+
         auto gBox = New!GeomBox(world, Vector3f(1.3f, 0.65f, 2.8f));
         auto b = world.addDynamicBody(Vector3f(0, 0, 0), 0.0f);
         b.damping = 0.6f;
@@ -410,22 +410,22 @@ class TestScene: Scene
         world.addShapeComponent(b, gBox, Vector3f(0.0f, 0.8f, 0.0f), 1500.0f);
         b.centerOfMass.y = -0.2f; // Artifically lowered center of mass
         b.centerOfMass.z = 0.25f;
-        
+
         foreach(i, ref w; eWheels)
         {
             w = createEntity3D(eCar);
             w.drawable = aCarDisk.mesh;
             w.material = matChrome;
-            
+
             eTyres[i] = createEntity3D(w);
             eTyres[i].drawable = aCarTyre.mesh;
             eTyres[i].material = matWheel;
         }
-        
+
         carView = New!CarView(eventManager, vehicle, assetManager);
         carView.mouseSensibility = config.props.mouseSensibility.toFloat;
         carViewEnabled = false;
-        
+
         // Smoke particle system with color changer and vortex
         auto mParticlesSmoke = createParticleMaterial();
         mParticlesSmoke.diffuse = aTexParticleSmoke.texture;
@@ -434,12 +434,12 @@ class TestScene: Scene
         mParticlesSmoke.blending = Transparent;
         mParticlesSmoke.depthWrite = false;
         mParticlesSmoke.energy = 1.0f;
-        
+
         Vector3f pos = Vector3f(0, 0, -10);
         auto chimney = aScene.entity("obChimney.entity");
         if (chimney)
             pos = chimney.absolutePosition;
-    
+
         auto eParticlesTest = createEntity3D();
         auto emitterSmoke = New!Emitter(eParticlesTest, particleSystem, 50);
         emitterSmoke.material = mParticlesSmoke;
@@ -454,17 +454,17 @@ class TestScene: Scene
         eParticlesTest.position = pos;
         eParticlesTest.layer = 3;
         eParticlesTest.visible = true;
-        
+
         auto eVortex = createEntity3D();
         eVortex.position = Vector3f(0, 0, -10);
         auto vortex = New!Vortex(eVortex, particleSystem, 1.0f, 1.0f);
-        
+
         // Dust particle systems
         auto mParticlesDust = createParticleMaterial();
         mParticlesDust.diffuse = aTexParticleDust.texture;
         mParticlesDust.blending = Transparent;
         mParticlesDust.depthWrite = false;
-        
+
         auto eParticlesRight = createEntity3D(eCar);
         emitterRight = New!Emitter(eParticlesRight, particleSystem, 20);
         eParticlesRight.position = Vector3f(-1.2f, 0, -2.8f);
@@ -479,7 +479,7 @@ class TestScene: Scene
         eParticlesRight.castShadow = false;
         eParticlesRight.layer = 3;
         eParticlesRight.visible = true;
-        
+
         auto eParticlesLeft = createEntity3D(eCar);
         emitterLeft = New!Emitter(eParticlesLeft, particleSystem, 20);
         eParticlesLeft.position = Vector3f(1.2f, 0, -2.8f);
@@ -494,54 +494,54 @@ class TestScene: Scene
         eParticlesLeft.castShadow = false;
         eParticlesLeft.layer = 3;
         eParticlesLeft.visible = true;
-        
+
         // HUD text
         helpText = New!TextLine(aFontDroidSans14.font, helpTextFirstPerson, assetManager);
         helpText.color = Color4f(1.0f, 1.0f, 1.0f, 0.7f);
-        
+
         auto eText = createEntity2D();
         eText.drawable = helpText;
         eText.position = Vector3f(16.0f, 30.0f, 0.0f);
-        
+
         infoText = New!TextLine(aFontDroidSans14.font, "0", assetManager);
         infoText.color = Color4f(1.0f, 1.0f, 1.0f, 0.7f);
-        
+
         auto eText2 = createEntity2D();
         eText2.drawable = infoText;
         eText2.position = Vector3f(16.0f, 60.0f, 0.0f);
-        
-        messageText = New!TextLine(aFontDroidSans14.font, 
-            "Press <E> to get in the car", 
+
+        messageText = New!TextLine(aFontDroidSans14.font,
+            "Press <E> to get in the car",
             assetManager);
         messageText.color = Color4f(1.0f, 1.0f, 1.0f, 0.0f);
-        
+
         auto eMessage = createEntity2D();
         eMessage.drawable = messageText;
         eMessage.position = Vector3f(eventManager.windowWidth * 0.5f - messageText.width * 0.5f, eventManager.windowHeight * 0.5f, 0.0f);
     }
-    
+
     override void onStart()
     {
         super.onStart();
         actor.play();
     }
-    
+
     override void onJoystickButtonDown(int button)
-    {    
+    {
         if (button == SDL_CONTROLLER_BUTTON_A)
             joystickButtonAPressed = true;
         else if (button == SDL_CONTROLLER_BUTTON_B)
             joystickButtonBPressed = true;
     }
-    
+
     override void onJoystickButtonUp(int button)
-    {    
+    {
         if (button == SDL_CONTROLLER_BUTTON_A)
             joystickButtonAPressed = false;
         else if (button == SDL_CONTROLLER_BUTTON_B)
             joystickButtonBPressed = false;
     }
-    
+
     override void onKeyDown(int key)
     {
         if (key == KEY_ESCAPE)
@@ -582,7 +582,7 @@ class TestScene: Scene
             takeScreenshot();
         }
     }
-    
+
     uint numScreenshots = 1;
     char[100] screenshotFilenameBuffer;
     void takeScreenshot()
@@ -595,10 +595,10 @@ class TestScene: Scene
             numScreenshots++;
         }
         while(exists(filename));
-        
+
         sceneManager.application.saveScreenshot(filename);
     }
-    
+
     override void onMouseButtonDown(int button)
     {
         // Toggle mouse look / cursor lock
@@ -619,7 +619,7 @@ class TestScene: Scene
                     carView.active = true;
             }
         }
-        
+
         // Create a light ball
         if (button == MB_RIGHT && !carViewEnabled)
         {
@@ -628,44 +628,44 @@ class TestScene: Scene
             createLightBall(pos, color, 20.0f, lightBallRadius, 5.0f);
         }
     }
-    
+
     Entity createLightBall(Vector3f pos, Color4f color, float energy, float areaRadius, float volumeRadius)
     {
         auto light = createLightSphere(pos, color, energy * 5, volumeRadius, areaRadius);
-            
+
         if (light)
         {
             auto mLightBall = createMaterial();
             mLightBall.diffuse = color;
             mLightBall.emission = color;
             mLightBall.energy = energy;
-                
+
             auto eLightBall = createEntity3D();
             eLightBall.drawable = sSphere;
             eLightBall.scaling = Vector3f(areaRadius, areaRadius, areaRadius);
             eLightBall.castShadow = false;
             eLightBall.material = mLightBall;
             eLightBall.position = pos;
-            
+
             auto bLightBall = world.addDynamicBody(Vector3f(0, 0, 0), 0.0f);
             RigidBodyController rbc = New!RigidBodyController(eLightBall, bLightBall);
             eLightBall.controller = rbc;
             world.addShapeComponent(bLightBall, gLightBall, Vector3f(0.0f, 0.0f, 0.0f), 10.0f);
-                
+
             LightBehaviour lc = New!LightBehaviour(eLightBall, light);
-            
+
             return eLightBall;
         }
-        
+
         return null;
     }
-    
+
     // Character control
     void updateCharacter(double dt)
     {
         character.rotation.y = fpview.camera.turn;
         Vector3f forward = fpview.camera.characterMatrix.forward;
-        Vector3f right = fpview.camera.characterMatrix.right; 
+        Vector3f right = fpview.camera.characterMatrix.right;
         float speed = 6.0f;
         Vector3f dir = Vector3f(0, 0, 0);
         if (eventManager.keyPressed[KEY_W]) dir += -forward;
@@ -680,12 +680,12 @@ class TestScene: Scene
     void updateVehicle(double dt)
     {
         float accelerate = 100.0f;
-    
+
         if (eventManager.keyPressed[KEY_Z])
             vehicle.accelerateForward(accelerate);
         else if (eventManager.keyPressed[KEY_X])
             vehicle.accelerateBackward(accelerate);
-    
+
         if (carViewEnabled)
         {
             if (eventManager.keyPressed[KEY_W] || joystickButtonBPressed)
@@ -694,7 +694,7 @@ class TestScene: Scene
                 vehicle.accelerateBackward(accelerate);
             else
                 vehicle.brake = false;
-            
+
             float steering = min(45.0f * abs(1.0f / max(vehicle.speed, 0.01f)), 5.0f);
 
             if (eventManager.keyPressed[KEY_A])
@@ -709,34 +709,34 @@ class TestScene: Scene
             else
                 vehicle.resetSteering();
         }
-        
+
         if (vehicle.wheels[2].isDrifting) emitterLeft.emitting = true;
         else emitterLeft.emitting = false;
         if (vehicle.wheels[3].isDrifting) emitterRight.emitting = true;
         else emitterRight.emitting = false;
-        
+
         vehicle.fixedStepUpdate(dt);
-        
+
         foreach(i, ref w; eWheels)
         {
             auto vWheel = vehicle.wheels[i];
             w.position = vWheel.position;
-            
+
             if (vehicle.wheels[i].dirCoef > 0.0f)
             {
-                w.rotation = rotationQuaternion(Axis.y, degtorad(-vWheel.steeringAngle)) * 
+                w.rotation = rotationQuaternion(Axis.y, degtorad(-vWheel.steeringAngle)) *
                              rotationQuaternion(Axis.x, degtorad(vWheel.roll));
             }
             else
             {
-                w.rotation = rotationQuaternion(Axis.y, degtorad(-vWheel.steeringAngle + 180.0f)) * 
+                w.rotation = rotationQuaternion(Axis.y, degtorad(-vWheel.steeringAngle + 180.0f)) *
                              rotationQuaternion(Axis.x, degtorad(-vWheel.roll));
             }
         }
     }
-    
+
     char[100] lightsText;
-        
+
     override void onLogicsUpdate(double dt)
     {
         // Update our character, vehicle and physics
@@ -744,17 +744,17 @@ class TestScene: Scene
             updateCharacter(dt);
         updateVehicle(dt);
         world.update(dt);
-        
+
         // Place camera to character controller position
         fpview.camera.position = character.rbody.position;
-        
+
         // Sun control
         if (eventManager.keyPressed[KEY_DOWN]) sunPitch += 30.0f * dt;
         if (eventManager.keyPressed[KEY_UP]) sunPitch -= 30.0f * dt;
         if (eventManager.keyPressed[KEY_LEFT]) sunTurn += 30.0f * dt;
         if (eventManager.keyPressed[KEY_RIGHT]) sunTurn -= 30.0f * dt;
-        environment.sunRotation = 
-            rotationQuaternion(Axis.y, degtorad(sunTurn)) * 
+        environment.sunRotation =
+            rotationQuaternion(Axis.y, degtorad(sunTurn)) *
             rotationQuaternion(Axis.x, degtorad(sunPitch));
 
         // Update infoText with some debug info
@@ -762,7 +762,7 @@ class TestScene: Scene
         uint n = sprintf(lightsText.ptr, "FPS: %u", eventManager.fps);
         string s = cast(string)lightsText[0..n];
         infoText.setText(s);
-        
+
         if (!carViewEnabled && distance(fpview.cameraPosition, vehicle.rbody.position) <= 4.0f)
         {
             if (messageText.color.a < 1.0f)
@@ -774,11 +774,11 @@ class TestScene: Scene
                 messageText.color.a -= 4.0f * dt;
         }
     }
-    
+
     override void onRelease()
     {
         super.onRelease();
-        
+
         // If we have created BVH, we should release it
         if (haveBVH)
         {
