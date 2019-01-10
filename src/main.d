@@ -354,7 +354,7 @@ class TestScene: Scene
         world = New!PhysicsWorld(assetManager);
 
         // BVH for castle model to handle collisions
-        bvh = entitiesToBVH(entities3D.data);
+        bvh = entitiesToBVH(_entities3D.data);
         haveBVH = true;
         if (bvh)
             world.bvhRoot = bvh.root;
