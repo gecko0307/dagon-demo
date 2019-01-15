@@ -166,6 +166,9 @@ class TestScene: Scene
     float sunPitch = -45.0f;
     float sunTurn = 10.0f;
 
+    CubemapRenderTarget cubemapRenderTarget;
+    Cubemap cubemap;
+
     FirstPersonView fpview;
     CarView carView;
     bool carViewEnabled = false;
@@ -259,8 +262,14 @@ class TestScene: Scene
     override void onAllocate()
     {
         super.onAllocate();
-        
+
         environment.sunEnergy = 50.0f;
+
+        cubemap = New!Cubemap(64, assetManager);
+        cubemapRenderTarget = New!CubemapRenderTarget(cubemap.width, assetManager);
+        //renderer.renderToCubemap(Vector3f(0, 5, 0), cubemap);
+        //cubemap.fromEquirectangularMap(aEnvmap.image, 512);
+        //environment.environmentMap = cubemap;
 
         // Camera and view
         auto eCamera = createEntity3D();
@@ -310,7 +319,7 @@ class TestScene: Scene
 
         auto matChrome = createMaterial();
         matChrome.diffuse = Color4f(1.0f, 1.0f, 1.0f, 1.0f);
-        matChrome.roughness = 0.1f;
+        matChrome.roughness = 0.4f;
         matChrome.metallic = 1.0f;
 
         auto matWheel = createMaterial();
@@ -324,24 +333,11 @@ class TestScene: Scene
         auto mySky = createMaterial(rRayleighShader);
         eSky = createSky(mySky);
 
-        // Dwarf entity (animated model)
-        actor = New!Actor(iqm.model, assetManager);
-        eDwarf = createEntity3D();
-        eDwarf.drawable = actor;
-        auto matDwarf = createMaterial();
-        matDwarf.diffuse = aTexDwarf.texture;
-        matDwarf.roughness = 0.8f;
-        eDwarf.material = matDwarf;
-        eDwarf.position.x = 8.0f;
-        eDwarf.position.y = 0.3f;
-        eDwarf.scaling = Vector3f(0.04, 0.04, 0.04);
-        eDwarf.defaultController.swapZY = true;
-
         // Terrain
         auto eTerrain = createEntity3D();
         //eTerrain.scaling = Vector3f(0.5, 0.25, 0.5);
         auto heightmap = New!ImageHeightmap(aHeightmap.texture.image, 20, assetManager);
-        auto terrain = New!Terrain(256, heightmap, assetManager);
+        auto terrain = New!Terrain(256, 32, heightmap, assetManager);
         Vector3f size = Vector3f(256, 0, 256) * eTerrain.scaling;
         eTerrain.drawable = terrain;
         //eTerrain.castShadow = false;
@@ -497,6 +493,21 @@ class TestScene: Scene
         eParticlesLeft.layer = 3;
         eParticlesLeft.visible = true;
 
+        // Dwarf entity (animated model)
+        /*
+        actor = New!Actor(iqm.model, assetManager);
+        eDwarf = createEntity3D();
+        eDwarf.drawable = actor;
+        auto matDwarf = createMaterial();
+        matDwarf.diffuse = aTexDwarf.texture;
+        matDwarf.roughness = 0.8f;
+        eDwarf.material = matDwarf;
+        eDwarf.position.x = 8.0f;
+        eDwarf.position.y = 0.3f;
+        eDwarf.scaling = Vector3f(0.04, 0.04, 0.04);
+        eDwarf.defaultController.swapZY = true;
+        */
+
         // HUD text
         helpText = New!TextLine(aFontDroidSans14.font, helpTextFirstPerson, assetManager);
         helpText.color = Color4f(1.0f, 1.0f, 1.0f, 0.7f);
@@ -525,7 +536,7 @@ class TestScene: Scene
     override void onStart()
     {
         super.onStart();
-        actor.play();
+        //actor.play();
     }
 
     override void onJoystickButtonDown(int button)
@@ -574,10 +585,10 @@ class TestScene: Scene
         }
         else if (key == KEY_F1)
         {
-            if (environment.environmentMap is null)
-                environment.environmentMap = aEnvmap.texture;
-            else
-                environment.environmentMap = null;
+            //if (environment.environmentMap is null)
+            //    environment.environmentMap = aEnvmap.texture;
+            //else
+            //    environment.environmentMap = null;
         }
         else if (key == KEY_F12)
         {
@@ -739,6 +750,15 @@ class TestScene: Scene
 
     char[100] lightsText;
 
+    bool sunChanged = true;
+
+    override void onKeyUp(int key)
+    {
+        if (key == KEY_DOWN || key == KEY_UP ||
+            key == KEY_LEFT || key == KEY_RIGHT)
+            sunChanged = true;
+    }
+
     override void onLogicsUpdate(double dt)
     {
         // Update our character, vehicle and physics
@@ -755,9 +775,18 @@ class TestScene: Scene
         if (eventManager.keyPressed[KEY_UP]) sunPitch -= 30.0f * dt;
         if (eventManager.keyPressed[KEY_LEFT]) sunTurn += 30.0f * dt;
         if (eventManager.keyPressed[KEY_RIGHT]) sunTurn -= 30.0f * dt;
+
         environment.sunRotation =
             rotationQuaternion(Axis.y, degtorad(sunTurn)) *
             rotationQuaternion(Axis.x, degtorad(sunPitch));
+
+        if (sunChanged)
+        {
+            environment.environmentMap = null;
+            renderer.renderToCubemap(Vector3f(0, 5, 0), cubemap, cubemapRenderTarget);
+            environment.environmentMap = cubemap;
+            sunChanged = false;
+        }
 
         // Update infoText with some debug info
         float speed = vehicle.speed * 3.6f;
