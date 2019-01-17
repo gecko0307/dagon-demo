@@ -268,6 +268,8 @@ class TestScene: Scene
         
         sun = createLightSun(Quaternionf.identity, Color4f(1, 1, 1, 1), environment.sunEnergy);
         sun.createShadow();
+        
+        standardShader.shadowMap = sun.cascadedShadowMap;
 
         cubemap = New!Cubemap(64, assetManager);
         cubemapRenderTarget = New!CubemapRenderTarget(cubemap.width, assetManager);
