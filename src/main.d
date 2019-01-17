@@ -163,6 +163,7 @@ class TestScene: Scene
 
     ShapeSphere sSphere;
 
+    LightSource sun;
     float sunPitch = -45.0f;
     float sunTurn = 10.0f;
 
@@ -264,6 +265,9 @@ class TestScene: Scene
         super.onAllocate();
 
         environment.sunEnergy = 50.0f;
+        
+        sun = createLightSun(Quaternionf.identity, Color4f(1, 1, 1, 1), environment.sunEnergy);
+        sun.createShadow();
 
         cubemap = New!Cubemap(64, assetManager);
         cubemapRenderTarget = New!CubemapRenderTarget(cubemap.width, assetManager);
@@ -337,7 +341,7 @@ class TestScene: Scene
         auto eTerrain = createEntity3D();
         //eTerrain.scaling = Vector3f(0.5, 0.25, 0.5);
         auto heightmap = New!ImageHeightmap(aHeightmap.texture.image, 20, assetManager);
-        auto terrain = New!Terrain(256, 32, heightmap, assetManager);
+        auto terrain = New!Terrain(256, 80, heightmap, assetManager);
         Vector3f size = Vector3f(256, 0, 256) * eTerrain.scaling;
         eTerrain.drawable = terrain;
         //eTerrain.castShadow = false;
@@ -779,6 +783,8 @@ class TestScene: Scene
         environment.sunRotation =
             rotationQuaternion(Axis.y, degtorad(sunTurn)) *
             rotationQuaternion(Axis.x, degtorad(sunPitch));
+        sun.rotation = environment.sunRotation;
+        sun.color = environment.sunColor;
 
         if (sunChanged)
         {
