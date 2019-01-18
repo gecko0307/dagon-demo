@@ -265,11 +265,10 @@ class TestScene: Scene
         super.onAllocate();
 
         environment.sunEnergy = 50.0f;
-        
+
         sun = createLightSun(Quaternionf.identity, Color4f(1, 1, 1, 1), environment.sunEnergy);
-        sun.createShadow();
-        
-        standardShader.shadowMap = sun.cascadedShadowMap;
+        sun.shadow = true;
+        mainSun = sun;
 
         cubemap = New!Cubemap(64, assetManager);
         cubemapRenderTarget = New!CubemapRenderTarget(cubemap.width, assetManager);
@@ -785,8 +784,6 @@ class TestScene: Scene
         environment.sunRotation =
             rotationQuaternion(Axis.y, degtorad(sunTurn)) *
             rotationQuaternion(Axis.x, degtorad(sunPitch));
-        sun.rotation = environment.sunRotation;
-        sun.color = environment.sunColor;
 
         if (sunChanged)
         {
