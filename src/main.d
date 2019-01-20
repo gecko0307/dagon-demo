@@ -166,6 +166,8 @@ class TestScene: Scene
     LightSource sun;
     float sunPitch = -45.0f;
     float sunTurn = 10.0f;
+    
+    Material rayleighSkyMaterial;
 
     CubemapRenderTarget cubemapRenderTarget;
     Cubemap cubemap;
@@ -266,7 +268,7 @@ class TestScene: Scene
 
         environment.sunEnergy = 50.0f;
 
-        sun = createLightSun(Quaternionf.identity, Color4f(1, 1, 1, 1), environment.sunEnergy);
+        sun = createLightSun(Quaternionf.identity, environment.sunColor, environment.sunEnergy);
         sun.shadow = true;
         mainSun = sun;
 
@@ -335,8 +337,8 @@ class TestScene: Scene
 
         // Sky entity
         auto rRayleighShader = New!RayleighShader(assetManager);
-        auto mySky = createMaterial(rRayleighShader);
-        eSky = createSky(mySky);
+        rayleighSkyMaterial = createMaterial(rRayleighShader);
+        eSky = createSky(rayleighSkyMaterial);
 
         // Terrain
         auto eTerrain = createEntity3D();
@@ -590,10 +592,24 @@ class TestScene: Scene
         }
         else if (key == KEY_F1)
         {
-            //if (environment.environmentMap is null)
-            //    environment.environmentMap = aEnvmap.texture;
-            //else
-            //    environment.environmentMap = null;
+            if (environment.skyMap is null)
+            {
+                environment.skyMap = aEnvmap.texture;
+                eSky.material = defaultSkyMaterial;
+                
+                environment.environmentMap = null;
+                renderer.renderToCubemap(Vector3f(0, 5, 0), cubemap, cubemapRenderTarget);
+                environment.environmentMap = cubemap;
+            }
+            else
+            {
+                environment.skyMap = null;
+                eSky.material = rayleighSkyMaterial;
+                
+                environment.environmentMap = null;
+                renderer.renderToCubemap(Vector3f(0, 5, 0), cubemap, cubemapRenderTarget);
+                environment.environmentMap = cubemap;
+            }
         }
         else if (key == KEY_F12)
         {
