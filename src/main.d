@@ -148,6 +148,8 @@ class TestScene: Scene
     TextureAsset aTexDwarf;
 
     TextureAsset aHeightmap;
+    
+    TextureAsset aTexPaint;
 
     OBJAsset aCrate;
 
@@ -194,6 +196,8 @@ class TestScene: Scene
 
     Emitter emitterLeft;
     Emitter emitterRight;
+    
+    Entity decal;
 
     string helpTextFirstPerson = "Press <LMB> to switch mouse look, WASD to move, spacebar to jump, <RMB> to create a light, arrow keys to rotate the sun";
     string helpTextVehicle = "Press W/S to accelerate forward/backward, A/D to steer, E to get out of the car";
@@ -228,7 +232,7 @@ class TestScene: Scene
     {
         aFontDroidSans14 = addFontAsset("data/font/DroidSans.ttf", 14);
 
-        aEnvmap = addTextureAsset("data/hdri/the_sky_is_on_fire_1k.hdr");
+        aEnvmap = addTextureAsset("data/hdri/Zion_7_Sunsetpeek_Ref.hdr");
 
         aTexGroundDiffuse = addTextureAsset("data/terrain/desert-albedo.png");
         aTexGroundNormal = addTextureAsset("data/terrain/desert-normal.png");
@@ -260,6 +264,8 @@ class TestScene: Scene
         aTexDwarf = addTextureAsset("data/iqm/dwarf.jpg");
 
         aHeightmap = addTextureAsset("data/terrain/heightmap.png");
+        
+        aTexPaint = addTextureAsset("data/textures/paint.png");
     }
 
     override void onAllocate()
@@ -351,6 +357,13 @@ class TestScene: Scene
         eTerrain.position = Vector3f(-size.x * 0.5, 0, -size.z * 0.5);
         eTerrain.solid = true;
         eTerrain.material = mGround;
+        
+        decal = addDecal();
+        decal.position = Vector3f(5, 0, 0);
+        decal.drawable = aCrate.mesh;
+        decal.material.diffuse = aTexPaint.texture;
+        decal.material.blending = Transparent;
+        decal.material.depthWrite = false;
 
         // Root entity from aScene
         Entity sceneEntity = addEntity3D(aScene.entity);
@@ -615,6 +628,8 @@ class TestScene: Scene
         {
             takeScreenshot();
         }
+        else if (key == KEY_P)
+            decal.position = fpview.camera.position + Vector3f(0, -1, 0);
     }
 
     uint numScreenshots = 1;
@@ -808,6 +823,7 @@ class TestScene: Scene
             environment.environmentMap = cubemap;
             sunChanged = false;
         }
+        
 
         // Update infoText with some debug info
         float speed = vehicle.speed * 3.6f;
