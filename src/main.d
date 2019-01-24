@@ -306,8 +306,8 @@ class TestScene: Scene
         renderer.glow.brightness = 0.5;
         renderer.glow.minLuminanceThreshold = 0.0;
         renderer.glow.maxLuminanceThreshold = 10.0;
-        renderer.lensDistortion.enabled = true;
-        renderer.lensDistortion.dispersion = 0.2;
+        //renderer.lensDistortion.enabled = true;
+        //renderer.lensDistortion.dispersion = 0.2;
         renderer.antiAliasing.enabled = true;
         renderer.lut.texture = aTexColorTable.texture;
 
@@ -357,6 +357,7 @@ class TestScene: Scene
         eTerrain.position = Vector3f(-size.x * 0.5, 0, -size.z * 0.5);
         eTerrain.solid = true;
         eTerrain.material = mGround;
+        eTerrain.dynamic = false;
         
         decal = addDecal();
         decal.position = Vector3f(5, 0, 0);
