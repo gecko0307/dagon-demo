@@ -304,8 +304,8 @@ class TestScene: Scene
         renderer.glow.enabled = true;
         renderer.glow.radius = 8;
         renderer.glow.brightness = 0.5;
-        renderer.glow.minLuminanceThreshold = 0.0;
-        renderer.glow.maxLuminanceThreshold = 10.0;
+        //renderer.glow.minLuminanceThreshold = 0.0;
+        //renderer.glow.maxLuminanceThreshold = 20.0;
         //renderer.lensDistortion.enabled = true;
         //renderer.lensDistortion.dispersion = 0.2;
         renderer.antiAliasing.enabled = true;
