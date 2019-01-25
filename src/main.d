@@ -149,7 +149,7 @@ class TestScene: Scene
 
     TextureAsset aHeightmap;
     
-    TextureAsset aTexPaint;
+    TextureAsset aTexFootprint;
 
     OBJAsset aCrate;
 
@@ -197,7 +197,7 @@ class TestScene: Scene
     Emitter emitterLeft;
     Emitter emitterRight;
     
-    Entity decal;
+    Entity[20] footprints;
 
     string helpTextFirstPerson = "Press <LMB> to switch mouse look, WASD to move, spacebar to jump, <RMB> to create a light, arrow keys to rotate the sun";
     string helpTextVehicle = "Press W/S to accelerate forward/backward, A/D to steer, E to get out of the car";
@@ -265,7 +265,7 @@ class TestScene: Scene
 
         aHeightmap = addTextureAsset("data/terrain/heightmap.png");
         
-        aTexPaint = addTextureAsset("data/textures/paint.png");
+        aTexFootprint = addTextureAsset("data/textures/footprint.png");
     }
 
     override void onAllocate()
@@ -359,12 +359,18 @@ class TestScene: Scene
         eTerrain.material = mGround;
         eTerrain.dynamic = false;
         
-        decal = addDecal();
-        decal.position = Vector3f(5, 0, 0);
-        decal.drawable = aCrate.mesh;
-        decal.material.diffuse = aTexPaint.texture;
-        decal.material.blending = Transparent;
-        decal.material.depthWrite = false;
+        foreach(i; 0..footprints.length)
+        {
+            auto decal = addDecal();
+            decal.position = Vector3f(5, 0, 0);
+            decal.scaling = Vector3f(0.3, 2, 0.3);
+            decal.drawable = aCrate.mesh;
+            decal.material.diffuse = aTexFootprint.texture;
+            decal.material.blending = Transparent;
+            decal.material.depthWrite = false;
+            decal.visible = false;
+            footprints[i] = decal;
+        }
 
         // Root entity from aScene
         Entity sceneEntity = addEntity3D(aScene.entity);
@@ -398,6 +404,8 @@ class TestScene: Scene
         character = New!CharacterController(eCharacter, world, 80.0f, gSphere);
         auto gSensor = New!GeomBox(world, Vector3f(0.5f, 0.5f, 0.5f));
         character.createSensor(gSensor, Vector3f(0.0f, -0.75f, 0.0f));
+        
+        decalPositionPrev = eCharacter.position;
 
         // Crates
         auto gCrate = New!GeomBox(world, Vector3f(0.5f, 0.5f, 0.5f));
@@ -629,8 +637,8 @@ class TestScene: Scene
         {
             takeScreenshot();
         }
-        else if (key == KEY_P)
-            decal.position = fpview.camera.position + Vector3f(0, -1, 0);
+        //else if (key == KEY_P)
+        //    decal.position = fpview.camera.position + Vector3f(0, -1, 0);
     }
 
     uint numScreenshots = 1;
@@ -726,6 +734,10 @@ class TestScene: Scene
         if (eventManager.keyPressed[KEY_SPACE]) character.jump(2.0f);
         character.logicalUpdate();
     }
+    
+    float walkDistance = 0.0f;
+    Vector3f decalPositionPrev;
+    size_t footprintIndex = 0;
 
     void updateVehicle(double dt)
     {
@@ -783,6 +795,34 @@ class TestScene: Scene
                              rotationQuaternion(Axis.x, degtorad(-vWheel.roll));
             }
         }
+        
+        walkDistance += abs(dot(character.rbody.linearVelocity, character.rbody.transformation.forward)) * dt;
+        if (walkDistance >= 1)
+        {
+            walkDistance = 0.0f;
+            // TODO: check if character is on terrain
+            showNewFootprint();
+        }
+    }
+    
+    void showNewFootprint()
+    {
+        auto decal = footprints[footprintIndex];
+        
+        Vector3f sideOffset;
+        if (footprintIndex % 2)
+            sideOffset = fpview.invViewMatrix.right * 0.2f;
+        else
+            sideOffset = -fpview.invViewMatrix.right * 0.2f;
+            
+        decal.position = character.rbody.position - fpview.invViewMatrix.forward * 0.5f + sideOffset;
+        
+        decal.rotation = rotationQuaternion!float(Axis.y, -degtorad(fpview.camera.turn)); 
+        decal.visible = true;
+        
+        footprintIndex++;
+        if (footprintIndex == footprints.length)
+            footprintIndex = 0;
     }
 
     char[100] lightsText;
