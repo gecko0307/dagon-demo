@@ -232,7 +232,7 @@ class TestScene: Scene
     {
         aFontDroidSans14 = addFontAsset("data/font/DroidSans.ttf", 14);
 
-        aEnvmap = addTextureAsset("data/hdri/Zion_7_Sunsetpeek_Ref.hdr");
+        aEnvmap = addTextureAsset("data/hdri/the_sky_is_on_fire_1k.hdr");
 
         aTexGroundDiffuse = addTextureAsset("data/terrain/desert-albedo.png");
         aTexGroundNormal = addTextureAsset("data/terrain/desert-normal.png");
