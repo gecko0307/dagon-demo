@@ -361,10 +361,11 @@ class TestScene: Scene
         
         foreach(i; 0..footprints.length)
         {
-            auto decal = addDecal();
+            auto decal = createDecal();
             decal.position = Vector3f(5, 0, 0);
             decal.scaling = Vector3f(0.3, 2, 0.3);
             decal.drawable = aCrate.mesh;
+            decal.material = createDecalMaterial();
             decal.material.diffuse = aTexFootprint.texture;
             decal.material.blending = Transparent;
             decal.material.depthWrite = false;
