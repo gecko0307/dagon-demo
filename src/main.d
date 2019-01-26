@@ -272,7 +272,7 @@ class TestScene: Scene
     {
         super.onAllocate();
 
-        environment.sunEnergy = 50.0f;
+        environment.sunEnergy = 20.0f;
 
         sun = createLightSun(Quaternionf.identity, environment.sunColor, environment.sunEnergy);
         sun.shadow = true;
@@ -295,7 +295,7 @@ class TestScene: Scene
         // Post-processing settings
         renderer.hdr.tonemapper = Tonemapper.ACES;
         renderer.hdr.autoExposure = false;
-        renderer.hdr.exposure = 0.2f;
+        renderer.hdr.exposure = 0.3f;
         renderer.ssao.enabled = true;
         renderer.ssao.power = 10.0;
         renderer.motionBlur.enabled = true;
