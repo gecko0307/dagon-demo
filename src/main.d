@@ -148,7 +148,7 @@ class TestScene: Scene
     TextureAsset aTexDwarf;
 
     TextureAsset aHeightmap;
-    
+
     TextureAsset aTexFootprint;
 
     OBJAsset aCrate;
@@ -168,7 +168,7 @@ class TestScene: Scene
     LightSource sun;
     float sunPitch = -45.0f;
     float sunTurn = 10.0f;
-    
+
     Material rayleighSkyMaterial;
 
     CubemapRenderTarget cubemapRenderTarget;
@@ -196,7 +196,7 @@ class TestScene: Scene
 
     Emitter emitterLeft;
     Emitter emitterRight;
-    
+
     Entity[20] footprints;
 
     string helpTextFirstPerson = "Press <LMB> to switch mouse look, WASD to move, spacebar to jump, <RMB> to create a light, arrow keys to rotate the sun";
@@ -264,7 +264,7 @@ class TestScene: Scene
         aTexDwarf = addTextureAsset("data/iqm/dwarf.jpg");
 
         aHeightmap = addTextureAsset("data/terrain/heightmap.png");
-        
+
         aTexFootprint = addTextureAsset("data/textures/footprint.png");
     }
 
@@ -309,7 +309,7 @@ class TestScene: Scene
         //renderer.lensDistortion.enabled = true;
         //renderer.lensDistortion.dispersion = 0.2;
         renderer.antiAliasing.enabled = true;
-        renderer.lut.texture = aTexColorTable.texture;
+        //renderer.lut.texture = aTexColorTable.texture;
 
         // Common materials
         auto matDefault = createMaterial();
@@ -358,7 +358,7 @@ class TestScene: Scene
         eTerrain.solid = true;
         eTerrain.material = mGround;
         eTerrain.dynamic = false;
-        
+
         foreach(i; 0..footprints.length)
         {
             auto decal = createDecal();
@@ -405,7 +405,7 @@ class TestScene: Scene
         character = New!CharacterController(eCharacter, world, 80.0f, gSphere);
         auto gSensor = New!GeomBox(world, Vector3f(0.5f, 0.5f, 0.5f));
         character.createSensor(gSensor, Vector3f(0.0f, -0.75f, 0.0f));
-        
+
         decalPositionPrev = eCharacter.position;
 
         // Crates
@@ -619,7 +619,7 @@ class TestScene: Scene
             {
                 environment.skyMap = aEnvmap.texture;
                 eSky.material = defaultSkyMaterial;
-                
+
                 environment.environmentMap = null;
                 renderer.renderToCubemap(Vector3f(0, 5, 0), cubemap, cubemapRenderTarget);
                 environment.environmentMap = cubemap;
@@ -628,7 +628,7 @@ class TestScene: Scene
             {
                 environment.skyMap = null;
                 eSky.material = rayleighSkyMaterial;
-                
+
                 environment.environmentMap = null;
                 renderer.renderToCubemap(Vector3f(0, 5, 0), cubemap, cubemapRenderTarget);
                 environment.environmentMap = cubemap;
@@ -735,7 +735,7 @@ class TestScene: Scene
         if (eventManager.keyPressed[KEY_SPACE]) character.jump(2.0f);
         character.logicalUpdate();
     }
-    
+
     float walkDistance = 0.0f;
     Vector3f decalPositionPrev;
     size_t footprintIndex = 0;
@@ -796,7 +796,7 @@ class TestScene: Scene
                              rotationQuaternion(Axis.x, degtorad(-vWheel.roll));
             }
         }
-        
+
         walkDistance += abs(dot(character.rbody.linearVelocity, character.rbody.transformation.forward)) * dt;
         if (walkDistance >= 1)
         {
@@ -805,22 +805,22 @@ class TestScene: Scene
             showNewFootprint();
         }
     }
-    
+
     void showNewFootprint()
     {
         auto decal = footprints[footprintIndex];
-        
+
         Vector3f sideOffset;
         if (footprintIndex % 2)
             sideOffset = fpview.invViewMatrix.right * 0.2f;
         else
             sideOffset = -fpview.invViewMatrix.right * 0.2f;
-            
+
         decal.position = character.rbody.position - fpview.invViewMatrix.forward * 0.5f + sideOffset;
-        
-        decal.rotation = rotationQuaternion!float(Axis.y, -degtorad(fpview.camera.turn)); 
+
+        decal.rotation = rotationQuaternion!float(Axis.y, -degtorad(fpview.camera.turn));
         decal.visible = true;
-        
+
         footprintIndex++;
         if (footprintIndex == footprints.length)
             footprintIndex = 0;
@@ -865,7 +865,7 @@ class TestScene: Scene
             environment.environmentMap = cubemap;
             sunChanged = false;
         }
-        
+
 
         // Update infoText with some debug info
         float speed = vehicle.speed * 3.6f;
