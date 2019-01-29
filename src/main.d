@@ -199,7 +199,7 @@ class TestScene: Scene
 
     Entity[20] footprints;
 
-    string helpTextFirstPerson = "Press <LMB> to switch mouse look, WASD to move, spacebar to jump, <RMB> to create a light, arrow keys to rotate the sun";
+    string helpTextFirstPerson = "Press <LMB> to switch mouse look, WASD to move, spacebar to jump, <RMB> to create a light, arrow keys to rotate the sun, G to show/hide UI";
     string helpTextVehicle = "Press W/S to accelerate forward/backward, A/D to steer, E to get out of the car";
 
     TextLine helpText;
@@ -220,8 +220,9 @@ class TestScene: Scene
 
     bool joystickButtonAPressed;
     bool joystickButtonBPressed;
-
-    //GenericMaterialBackend matBackend;
+    
+    NuklearGUI gui;
+    bool guiVisible = false;
 
     this(SceneManager smngr)
     {
@@ -561,6 +562,10 @@ class TestScene: Scene
         auto eMessage = createEntity2D();
         eMessage.drawable = messageText;
         eMessage.position = Vector3f(eventManager.windowWidth * 0.5f - messageText.width * 0.5f, eventManager.windowHeight * 0.5f, 0.0f);
+        
+        gui = New!NuklearGUI(&eventManager, assetManager);
+        auto eNuklear = createEntity2D();
+        eNuklear.drawable = gui;
     }
 
     override void onStart()
@@ -638,8 +643,10 @@ class TestScene: Scene
         {
             takeScreenshot();
         }
-        //else if (key == KEY_P)
-        //    decal.position = fpview.camera.position + Vector3f(0, -1, 0);
+        else if (key == KEY_BACKSPACE && guiVisible)
+        {
+            gui.inputKeyDown(NK_KEY_BACKSPACE);
+        }
     }
 
     uint numScreenshots = 1;
@@ -660,6 +667,14 @@ class TestScene: Scene
 
     override void onMouseButtonDown(int button)
     {
+        if (guiVisible)
+        {
+            gui.inputButtonDown(button);
+            // Don't execute rest of this callback if we click on gui element
+            if (gui.itemIsAnyActive())
+                return;
+        }
+
         // Toggle mouse look / cursor lock
         if (button == MB_LEFT)
         {
@@ -686,6 +701,24 @@ class TestScene: Scene
             Color4f color = lightColors[uniform(0, lightColors.length)];
             createLightBall(pos, color, 20.0f, lightBallRadius, 5.0f);
         }
+    }
+    
+    override void onMouseButtonUp(int button)
+    {
+        if (guiVisible)
+        gui.inputButtonUp(button);
+    }
+
+    override void onTextInput(dchar unicode)
+    {
+        if (guiVisible)
+            gui.inputUnicode(unicode);
+    }
+
+    override void onMouseWheel(int x, int y)
+    {
+        if (guiVisible)
+            gui.inputScroll(x, y);
     }
 
     Entity createLightBall(Vector3f pos, Color4f color, float energy, float areaRadius, float volumeRadius)
@@ -717,6 +750,56 @@ class TestScene: Scene
         }
 
         return null;
+    }
+    
+    Color4f lightColor = Color4f(1f, 1f, 1f, 1f);
+    
+    void updateUserInterface()
+    { 
+        if (!guiVisible) return;
+        
+        if (gui.begin("Sun", gui.Rect(20, 100, 230, 120), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_TITLE))
+        {
+            gui.layoutRowDynamic(30, 1);    
+            sunPitch = gui.property("Pitch:", -180f, sunPitch, 0f, 1f, 0.5f);
+            sunTurn = gui.property("Turn:", -180f, sunTurn, 180f, 1f, 0.5f);
+        }
+        gui.end();
+
+        if (gui.begin("Light creator", gui.Rect(20, 270, 230, 325), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_TITLE))
+        {
+            gui.layoutRowDynamic(150, 1);
+            lightColor = gui.colorPicker(lightColor, NK_RGB);
+
+            gui.layoutRowDynamic(25, 1);
+            lightColor.r = gui.property("#R:", 0f, lightColor.r, 1.0f, 0.01f, 0.005f);
+            lightColor.g = gui.property("#G:", 0f, lightColor.g, 1.0f, 0.01f, 0.005f);
+            lightColor.b = gui.property("#B:", 0f, lightColor.b, 1.0f, 0.01f, 0.005f);
+
+            gui.layoutRowDynamic(25, 1);
+            if (gui.buttonLabel("Create"))
+            {
+                if (!carViewEnabled)
+                {
+                    Vector3f pos = fpview.camera.position + fpview.camera.characterMatrix.forward * -2.0f + Vector3f(0, 1, 0);
+                    createLightBall(pos, lightColor, 20.0f, lightBallRadius, 5.0f);
+                }
+            }
+        }
+        gui.end();
+
+        if (gui.begin("Input and Texture", gui.Rect(1000, 100, 230, 200), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_TITLE | NK_WINDOW_SCALABLE))
+        {
+            static int len = 4;
+            static char[256] buffer = "test";
+            gui.layoutRowDynamic(35, 1);
+            gui.editString(NK_EDIT_SIMPLE, buffer.ptr, &len, 255, null);
+
+            gui.layoutRowStatic(150, 150, 1);
+            gui.image(aTexCrateDiffuse.texture.toNuklearImage);
+            gui.layoutRowDynamic(35, 1);
+        }
+        gui.end();
     }
 
     // Character control
@@ -835,10 +918,17 @@ class TestScene: Scene
         if (key == KEY_DOWN || key == KEY_UP ||
             key == KEY_LEFT || key == KEY_RIGHT)
             sunChanged = true;
+            
+        if (key == KEY_G)
+            guiVisible = !guiVisible;
+        if (key == KEY_BACKSPACE && guiVisible)
+            gui.inputKeyUp(NK_KEY_BACKSPACE);
     }
 
     override void onLogicsUpdate(double dt)
     {
+        updateUserInterface();
+        
         // Update our character, vehicle and physics
         if (!carViewEnabled)
             updateCharacter(dt);
