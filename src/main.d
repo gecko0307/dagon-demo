@@ -151,8 +151,6 @@ class TestScene: Scene
 
     TextureAsset aTexFootprint;
 
-    OBJAsset aCrate;
-
     PackageAsset aCar;
     OBJAsset aCarDisk;
     OBJAsset aCarTyre;
@@ -246,8 +244,6 @@ class TestScene: Scene
         aTexParticleDust = addTextureAsset("data/textures/dust.png");
         aTexParticleDustNormal = addTextureAsset("data/textures/dust-normal.png");
 
-        aCrate = addOBJAsset("data/obj/crate.obj");
-
         assetManager.mountDirectory("data/iqm");
         iqm = addIQMAsset("data/iqm/dwarf.iqm");
 
@@ -305,12 +301,13 @@ class TestScene: Scene
         renderer.glow.enabled = true;
         renderer.glow.radius = 8;
         renderer.glow.brightness = 0.5;
-        //renderer.glow.minLuminanceThreshold = 0.0;
-        //renderer.glow.maxLuminanceThreshold = 20.0;
-        //renderer.lensDistortion.enabled = true;
-        //renderer.lensDistortion.dispersion = 0.2;
+        renderer.glow.minLuminanceThreshold = 0.0;
+        renderer.glow.maxLuminanceThreshold = 1.0;
+        renderer.lensDistortion.enabled = true;
+        renderer.lensDistortion.dispersion = 0.2;
         renderer.antiAliasing.enabled = true;
-        //renderer.lut.texture = aTexColorTable.texture;
+        renderer.lut.texture = aTexColorTable.texture;
+        renderer.vignette.texture = aTexVignette.texture;
 
         // Common materials
         auto matDefault = createMaterial();
@@ -359,13 +356,15 @@ class TestScene: Scene
         eTerrain.solid = true;
         eTerrain.material = mGround;
         eTerrain.dynamic = false;
+        
+        auto shBox = New!ShapeBox(Vector3f(1, 1, 1), assetManager);
 
         foreach(i; 0..footprints.length)
         {
             auto decal = createDecal();
             decal.position = Vector3f(5, 0, 0);
             decal.scaling = Vector3f(0.3, 2, 0.3);
-            decal.drawable = aCrate.mesh;
+            decal.drawable = shBox;
             decal.material = createDecalMaterial();
             decal.material.diffuse = aTexFootprint.texture;
             decal.material.blending = Transparent;
@@ -415,7 +414,7 @@ class TestScene: Scene
         foreach(i; 0..5)
         {
             auto eCrate = createEntity3D();
-            eCrate.drawable = aCrate.mesh;
+            eCrate.drawable = shBox;
             eCrate.material = mCrate;
             eCrate.position = Vector3f(i * 0.1f, 3.0f + 3.0f * cast(float)i, -5.0f);
             eCrate.scaling = Vector3f(0.5f, 0.5f, 0.5f);
