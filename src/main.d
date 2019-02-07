@@ -562,7 +562,10 @@ class TestScene: Scene
         eMessage.drawable = messageText;
         eMessage.position = Vector3f(eventManager.windowWidth * 0.5f - messageText.width * 0.5f, eventManager.windowHeight * 0.5f, 0.0f);
         
-        gui = New!NuklearGUI(&eventManager, assetManager);
+        gui = New!NuklearGUI(eventManager, assetManager);
+        auto font = gui.addFont(aFontDroidSans14, 18);
+        gui.generateFontAtlas();
+        
         auto eNuklear = createEntity2D();
         eNuklear.drawable = gui;
     }
@@ -757,7 +760,7 @@ class TestScene: Scene
     { 
         if (!guiVisible) return;
         
-        if (gui.begin("Sun", gui.Rect(20, 100, 230, 120), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_TITLE))
+        if (gui.begin("Sun", NKRect(20, 100, 230, 120), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_TITLE))
         {
             gui.layoutRowDynamic(30, 1);    
             sunPitch = gui.property("Pitch:", -180f, sunPitch, 0f, 1f, 0.5f);
@@ -765,7 +768,7 @@ class TestScene: Scene
         }
         gui.end();
 
-        if (gui.begin("Light creator", gui.Rect(20, 270, 230, 325), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_TITLE))
+        if (gui.begin("Light creator", NKRect(20, 270, 230, 325), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_TITLE))
         {
             gui.layoutRowDynamic(150, 1);
             lightColor = gui.colorPicker(lightColor, NK_RGB);
@@ -787,7 +790,7 @@ class TestScene: Scene
         }
         gui.end();
 
-        if (gui.begin("Input and Texture", gui.Rect(1000, 100, 230, 200), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_TITLE | NK_WINDOW_SCALABLE))
+        if (gui.begin("Input and Texture", NKRect(1000, 100, 230, 200), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_TITLE | NK_WINDOW_SCALABLE))
         {
             static int len = 4;
             static char[256] buffer = "test";
@@ -795,7 +798,7 @@ class TestScene: Scene
             gui.editString(NK_EDIT_SIMPLE, buffer.ptr, &len, 255, null);
 
             gui.layoutRowStatic(150, 150, 1);
-            gui.image(aTexCrateDiffuse.texture.toNuklearImage);
+            gui.image(aTexCrateDiffuse.texture.toNKImage);
             gui.layoutRowDynamic(35, 1);
         }
         gui.end();
