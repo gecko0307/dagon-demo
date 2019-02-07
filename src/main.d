@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2017-2018 Timur Gafarov
 
 Boost Software License - Version 1.0 - August 17th, 2003
@@ -563,7 +563,7 @@ class TestScene: Scene
         eMessage.position = Vector3f(eventManager.windowWidth * 0.5f - messageText.width * 0.5f, eventManager.windowHeight * 0.5f, 0.0f);
         
         gui = New!NuklearGUI(eventManager, assetManager);
-        auto font = gui.addFont(aFontDroidSans14, 18);
+        auto font = gui.addFont(aFontDroidSans14, 18, gui.fontCyrillicGlyphRanges);
         gui.generateFontAtlas();
         
         auto eNuklear = createEntity2D();
