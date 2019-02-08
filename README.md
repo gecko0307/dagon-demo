@@ -2,7 +2,7 @@ Dagon Demo Application
 ======================
 This is a test application that demonstrates features of [Dagon](https://github.com/gecko0307/dagon) game framework. 
 
-The demo shows how to load static and animated meshes, create terrain, assign materials and textures, create lights, integrate a physics engine ([dmech](https://github.com/gecko0307/dmech) is this case), render 2D text and much more. It includes game-ready character controller and vehicle. The demo can be used as a base for a first person shooter or a racing game.
+The demo shows how to load static and animated meshes, create terrain, skydome and particle systems, assign materials and textures, add lights, integrate a physics engine ([dmech](https://github.com/gecko0307/dmech) is this case), render 2D text, create UI and much more. It includes game-ready character controller and vehicle. The demo can be used as a base for a first person shooter or a racing game.
 
 If you like Dagon, please support its development on [Patreon](https://www.patreon.com/gecko0307) or [Liberapay](https://liberapay.com/gecko0307). You can also make one-time donation via [PayPal](https://www.paypal.me/tgafarov). I appreciate any support. Thanks in advance!
 
@@ -38,8 +38,14 @@ Press E to get in the car, RMB to create a light ball. Press arrow keys rotate t
 
 While in the car, press W/S to accelerate forward/backward, A/S to steer, E to get out. You can also use a joystick or a driving wheel.
 
+Press G to show UI widgets.
+
+Press F1 to switch skydome/HDRI environment.
+
+Press F12 to make a screenshot.
+
 Press Escape or close the window to exit the application.
 
 License
 -------
-Copyright (c) 2016-2018 Timur Gafarov. Distributed under the Boost Software License, Version 1.0 (see accompanying file COPYING or at http://www.boost.org/LICENSE_1_0.txt).
+Copyright (c) 2016-2019 Timur Gafarov. Distributed under the Boost Software License, Version 1.0 (see accompanying file COPYING or at http://www.boost.org/LICENSE_1_0.txt).
