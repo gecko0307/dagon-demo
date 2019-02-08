@@ -524,7 +524,6 @@ class TestScene: Scene
         eParticlesLeft.visible = true;
 
         // Dwarf entity (animated model)
-        /*
         actor = New!Actor(iqm.model, assetManager);
         eDwarf = createEntity3D();
         eDwarf.drawable = actor;
@@ -535,8 +534,7 @@ class TestScene: Scene
         eDwarf.position.x = 8.0f;
         eDwarf.position.y = 0.3f;
         eDwarf.scaling = Vector3f(0.04, 0.04, 0.04);
-        eDwarf.defaultController.swapZY = true;
-        */
+        eDwarf.swapZY = true;
 
         // HUD text
         helpText = New!TextLine(aFontDroidSans14.font, helpTextFirstPerson, assetManager);
@@ -573,7 +571,7 @@ class TestScene: Scene
     override void onStart()
     {
         super.onStart();
-        //actor.play();
+        actor.play();
     }
 
     override void onJoystickButtonDown(int button)
