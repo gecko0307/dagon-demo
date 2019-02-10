@@ -561,7 +561,7 @@ class TestScene: Scene
         eMessage.position = Vector3f(eventManager.windowWidth * 0.5f - messageText.width * 0.5f, eventManager.windowHeight * 0.5f, 0.0f);
         
         gui = New!NuklearGUI(eventManager, assetManager);
-        auto font = gui.addFont(aFontDroidSans14, 18, gui.fontCyrillicGlyphRanges);
+        auto font = gui.addFont(aFontDroidSans14, 18, gui.localeGlyphRanges);
         gui.generateFontAtlas();
         
         auto eNuklear = createEntity2D();
