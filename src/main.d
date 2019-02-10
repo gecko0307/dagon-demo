@@ -562,7 +562,6 @@ class TestScene: Scene
         
         gui = New!NuklearGUI(eventManager, assetManager);
         auto font = gui.addFont(aFontDroidSans14, 18, gui.localeGlyphRanges);
-        gui.generateFontAtlas();
         
         auto eNuklear = createEntity2D();
         eNuklear.drawable = gui;
