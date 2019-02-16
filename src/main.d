@@ -357,14 +357,13 @@ class TestScene: Scene
         eTerrain.material = mGround;
         eTerrain.dynamic = false;
         
-        auto shBox = New!ShapeBox(Vector3f(1, 1, 1), assetManager);
-
+        
         foreach(i; 0..footprints.length)
         {
             auto decal = createDecal();
             decal.position = Vector3f(5, 0, 0);
             decal.scaling = Vector3f(0.3, 2, 0.3);
-            decal.drawable = shBox;
+            //decal.drawable = shBox;
             decal.material = createDecalMaterial();
             decal.material.diffuse = aTexFootprint.texture;
             decal.material.blending = Transparent;
@@ -410,7 +409,8 @@ class TestScene: Scene
 
         // Crates
         auto gCrate = New!GeomBox(world, Vector3f(0.5f, 0.5f, 0.5f));
-
+        auto shBox = New!ShapeBox(Vector3f(1, 1, 1), assetManager);
+        
         foreach(i; 0..5)
         {
             auto eCrate = createEntity3D();
