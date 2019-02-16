@@ -1001,9 +1001,9 @@ class MyApplication: SceneApplication
 
 void main(string[] args)
 {
-    writeln("Allocated memory at start: ", allocatedMemory);
+    enableMemoryProfiler(true);
     MyApplication app = New!MyApplication(args);
     app.run();
     Delete(app);
-    writeln("Allocated memory at end: ", allocatedMemory);
+    printMemoryLeaks();
 }
