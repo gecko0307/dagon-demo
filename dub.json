@@ -12,10 +12,7 @@
     ],
 
     "dependencies": {
-        "dagon": {
-            "version": "~master",
-            "path": "C:/Users/tim/Documents/GitHub/dagon"
-        }
+        "dagon": "~master"
     },
 
     "buildRequirements":[
