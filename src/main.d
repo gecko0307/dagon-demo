@@ -296,7 +296,7 @@ class TestScene: Scene
         renderer.ssao.enabled = true;
         renderer.ssao.power = 10.0;
         renderer.motionBlur.enabled = true;
-        renderer.motionBlur.shutterSpeed = 1.0 / 60.0;
+        renderer.motionBlur.shutterSpeed = 1.0 / 24.0;
         renderer.motionBlur.samples = 30;
         renderer.glow.enabled = true;
         renderer.glow.radius = 8;
