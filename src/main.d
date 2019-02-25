@@ -270,6 +270,8 @@ class TestScene: Scene
         super.onAllocate();
 
         environment.sunEnergy = 20.0f;
+        environment.fogEnd = 200.0f;
+        environment.atmosphericFog = true;
 
         sun = createLightSun(Quaternionf.identity, environment.sunColor, environment.sunEnergy);
         sun.shadow = true;
