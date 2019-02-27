@@ -127,6 +127,14 @@ class TestScene: Scene
     FontAsset aFontDroidSans14;
 
     TextureAsset aEnvmap;
+    
+    TextureAsset aTexSkyFront;
+    TextureAsset aTexSkyBack;
+    TextureAsset aTexSkyLeft;
+    TextureAsset aTexSkyRight;
+    TextureAsset aTexSkyTop;
+    TextureAsset aTexSkyBottom;
+    Cubemap skyCubemap;
 
     TextureAsset aTexGroundDiffuse;
     TextureAsset aTexGroundNormal;
@@ -150,6 +158,7 @@ class TestScene: Scene
     TextureAsset aHeightmap;
 
     TextureAsset aTexFootprint;
+    TextureAsset aTexFootprintNormal;
 
     PackageAsset aCar;
     OBJAsset aCarDisk;
@@ -196,6 +205,7 @@ class TestScene: Scene
     Emitter emitterRight;
 
     Entity[20] footprints;
+    bool createFootprints = true;
 
     string helpTextFirstPerson = "Press <LMB> to switch mouse look, WASD to move, spacebar to jump, <RMB> to create a light, arrow keys to rotate the sun, G to show/hide UI";
     string helpTextVehicle = "Press W/S to accelerate forward/backward, A/D to steer, E to get out of the car";
@@ -263,6 +273,14 @@ class TestScene: Scene
         aHeightmap = addTextureAsset("data/terrain/heightmap.png");
 
         aTexFootprint = addTextureAsset("data/textures/footprint.png");
+        aTexFootprintNormal = addTextureAsset("data/textures/footprint-normal.png");
+        
+        aTexSkyFront = addTextureAsset("data/skybox/sky_front.png");
+        aTexSkyBack = addTextureAsset("data/skybox/sky_back.png");
+        aTexSkyLeft = addTextureAsset("data/skybox/sky_left.png");
+        aTexSkyRight = addTextureAsset("data/skybox/sky_right.png");
+        aTexSkyTop = addTextureAsset("data/skybox/sky_top.png");
+        aTexSkyBottom = addTextureAsset("data/skybox/sky_bottom.png");
     }
 
     override void onAllocate()
@@ -270,8 +288,19 @@ class TestScene: Scene
         super.onAllocate();
 
         environment.sunEnergy = 20.0f;
-        environment.fogEnd = 200.0f;
+        environment.fogEnd = 1000.0f;
         environment.atmosphericFog = true;
+        
+        skyCubemap = New!Cubemap(1024, assetManager);
+        //skyCubemap.fromEquirectangularMap(aEnvmap.texture);
+        skyCubemap.setFaceImage(CubeFace.PositiveZ, aTexSkyFront.texture.image);
+        skyCubemap.setFaceImage(CubeFace.NegativeZ, aTexSkyBack.texture.image);
+        skyCubemap.setFaceImage(CubeFace.PositiveX, aTexSkyRight.texture.image);
+        skyCubemap.setFaceImage(CubeFace.NegativeX, aTexSkyLeft.texture.image);
+        skyCubemap.setFaceImage(CubeFace.PositiveY, aTexSkyTop.texture.image);
+        skyCubemap.setFaceImage(CubeFace.NegativeY, aTexSkyBottom.texture.image);
+        environment.skyMap = skyCubemap;
+        environment.skyBrightness = 2.0f;
 
         sun = createLightSun(Quaternionf.identity, environment.sunColor, environment.sunEnergy);
         sun.shadow = true;
@@ -305,7 +334,7 @@ class TestScene: Scene
         renderer.glow.brightness = 0.5;
         renderer.glow.minLuminanceThreshold = 0.0;
         renderer.glow.maxLuminanceThreshold = 1.0;
-        renderer.lensDistortion.enabled = true;
+        renderer.lensDistortion.enabled = false;
         renderer.lensDistortion.dispersion = 0.2;
         renderer.antiAliasing.enabled = true;
         renderer.lut.texture = aTexColorTable.texture;
@@ -323,7 +352,7 @@ class TestScene: Scene
         mGround.height = aTexGroundHeight.texture;
         mGround.roughness = aTexGroundRoughness.texture;
         mGround.parallax = ParallaxSimple;
-        mGround.textureScale = Vector2f(25, 25);
+        mGround.textureScale = Vector2f(40, 40);
 
         auto mCrate = createMaterial();
         mCrate.diffuse = aTexCrateDiffuse.texture;
@@ -344,7 +373,9 @@ class TestScene: Scene
         // Sky entity
         auto rRayleighShader = New!RayleighShader(assetManager);
         rayleighSkyMaterial = createMaterial(rRayleighShader);
-        eSky = createSky(rayleighSkyMaterial);
+        rayleighSkyMaterial.depthWrite = false;
+        rayleighSkyMaterial.culling = false;
+        eSky = createSky(); //rayleighSkyMaterial
 
         // Terrain
         auto eTerrain = createEntity3D();
@@ -359,17 +390,22 @@ class TestScene: Scene
         eTerrain.material = mGround;
         eTerrain.dynamic = false;
         
+        auto decalMat = createDecalMaterial();
+        decalMat.diffuse = aTexFootprint.texture;
+        decalMat.blending = Transparent;
+        decalMat.depthWrite = false;
+        decalMat.normal = aTexFootprintNormal.texture;
+        decalMat.roughness = 0.4f;
+        //decalMat.metallic = 1.0f;
+        //decalMat.emission = aTexFootprintE.texture;
+        //decalMat.energy = 10.0f;
         
         foreach(i; 0..footprints.length)
         {
             auto decal = createDecal();
             decal.position = Vector3f(5, 0, 0);
             decal.scaling = Vector3f(0.3, 2, 0.3);
-            //decal.drawable = shBox;
-            decal.material = createDecalMaterial();
-            decal.material.diffuse = aTexFootprint.texture;
-            decal.material.blending = Transparent;
-            decal.material.depthWrite = false;
+            decal.material = decalMat;
             decal.visible = false;
             footprints[i] = decal;
         }
@@ -623,7 +659,7 @@ class TestScene: Scene
         {
             if (environment.skyMap is null)
             {
-                environment.skyMap = aEnvmap.texture;
+                environment.skyMap = skyCubemap; //aEnvmap.texture;
                 eSky.material = defaultSkyMaterial;
 
                 environment.environmentMap = null;
@@ -886,7 +922,8 @@ class TestScene: Scene
         {
             walkDistance = 0.0f;
             // TODO: check if character is on terrain
-            showNewFootprint();
+            if (createFootprints)
+                showNewFootprint();
         }
     }
 
