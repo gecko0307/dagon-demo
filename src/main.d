@@ -128,12 +128,12 @@ class TestScene: Scene
 
     TextureAsset aEnvmap;
     
-    TextureAsset aTexSkyFront;
-    TextureAsset aTexSkyBack;
-    TextureAsset aTexSkyLeft;
-    TextureAsset aTexSkyRight;
-    TextureAsset aTexSkyTop;
-    TextureAsset aTexSkyBottom;
+    ImageAsset aTexSkyFront;
+    ImageAsset aTexSkyBack;
+    ImageAsset aTexSkyLeft;
+    ImageAsset aTexSkyRight;
+    ImageAsset aTexSkyTop;
+    ImageAsset aTexSkyBottom;
     Cubemap skyCubemap;
 
     TextureAsset aTexGroundDiffuse;
@@ -275,12 +275,12 @@ class TestScene: Scene
         aTexFootprint = addTextureAsset("data/textures/footprint.png");
         aTexFootprintNormal = addTextureAsset("data/textures/footprint-normal.png");
         
-        aTexSkyFront = addTextureAsset("data/skybox/sky_front.png");
-        aTexSkyBack = addTextureAsset("data/skybox/sky_back.png");
-        aTexSkyLeft = addTextureAsset("data/skybox/sky_left.png");
-        aTexSkyRight = addTextureAsset("data/skybox/sky_right.png");
-        aTexSkyTop = addTextureAsset("data/skybox/sky_top.png");
-        aTexSkyBottom = addTextureAsset("data/skybox/sky_bottom.png");
+        aTexSkyFront = addImageAsset("data/skybox/sky_front.png");
+        aTexSkyBack = addImageAsset("data/skybox/sky_back.png");
+        aTexSkyLeft = addImageAsset("data/skybox/sky_left.png");
+        aTexSkyRight = addImageAsset("data/skybox/sky_right.png");
+        aTexSkyTop = addImageAsset("data/skybox/sky_top.png");
+        aTexSkyBottom = addImageAsset("data/skybox/sky_bottom.png");
     }
 
     override void onAllocate()
@@ -293,14 +293,15 @@ class TestScene: Scene
         
         skyCubemap = New!Cubemap(1024, assetManager);
         //skyCubemap.fromEquirectangularMap(aEnvmap.texture);
-        skyCubemap.setFaceImage(CubeFace.PositiveZ, aTexSkyFront.texture.image);
-        skyCubemap.setFaceImage(CubeFace.NegativeZ, aTexSkyBack.texture.image);
-        skyCubemap.setFaceImage(CubeFace.PositiveX, aTexSkyRight.texture.image);
-        skyCubemap.setFaceImage(CubeFace.NegativeX, aTexSkyLeft.texture.image);
-        skyCubemap.setFaceImage(CubeFace.PositiveY, aTexSkyTop.texture.image);
-        skyCubemap.setFaceImage(CubeFace.NegativeY, aTexSkyBottom.texture.image);
+        skyCubemap.setFaceImage(CubeFace.PositiveZ, aTexSkyFront.image);
+        skyCubemap.setFaceImage(CubeFace.NegativeZ, aTexSkyBack.image);
+        skyCubemap.setFaceImage(CubeFace.PositiveX, aTexSkyRight.image);
+        skyCubemap.setFaceImage(CubeFace.NegativeX, aTexSkyLeft.image);
+        skyCubemap.setFaceImage(CubeFace.PositiveY, aTexSkyTop.image);
+        skyCubemap.setFaceImage(CubeFace.NegativeY, aTexSkyBottom.image);
         environment.skyMap = skyCubemap;
         environment.skyBrightness = 2.0f;
+        environment.environmentBrightness = 1.0f;
 
         sun = createLightSun(Quaternionf.identity, environment.sunColor, environment.sunEnergy);
         sun.shadow = true;
@@ -333,7 +334,7 @@ class TestScene: Scene
         renderer.glow.radius = 8;
         renderer.glow.brightness = 0.5;
         renderer.glow.minLuminanceThreshold = 0.0;
-        renderer.glow.maxLuminanceThreshold = 1.0;
+        renderer.glow.maxLuminanceThreshold = 5.0;
         renderer.lensDistortion.enabled = false;
         renderer.lensDistortion.dispersion = 0.2;
         renderer.antiAliasing.enabled = true;
@@ -381,7 +382,7 @@ class TestScene: Scene
         auto eTerrain = createEntity3D();
         //eTerrain.scaling = Vector3f(0.5, 0.25, 0.5);
         auto heightmap = New!ImageHeightmap(aHeightmap.texture.image, 20, assetManager);
-        auto terrain = New!Terrain(256, 80, heightmap, assetManager);
+        auto terrain = New!Terrain(256, 100, heightmap, assetManager);
         Vector3f size = Vector3f(256, 0, 256) * eTerrain.scaling;
         eTerrain.drawable = terrain;
         //eTerrain.castShadow = false;
