@@ -226,8 +226,8 @@ class TestScene: Scene
         Color4f(0.1, 0.5, 1, 1)
     ];
 
-    bool joystickButtonAPressed;
-    bool joystickButtonBPressed;
+    //bool joystickButtonAPressed;
+    //bool joystickButtonBPressed;
     
     NuklearGUI gui;
     bool guiVisible = false;
@@ -309,9 +309,9 @@ class TestScene: Scene
 
         cubemap = New!Cubemap(64, assetManager);
         cubemapRenderTarget = New!CubemapRenderTarget(cubemap.width, assetManager);
-        //renderer.renderToCubemap(Vector3f(0, 5, 0), cubemap);
+        renderer.renderToCubemap(Vector3f(0, 5, 0), cubemap);
         //cubemap.fromEquirectangularMap(aEnvmap.image, 512);
-        //environment.environmentMap = cubemap;
+        environment.environmentMap = cubemap;
 
         // Camera and view
         auto eCamera = createEntity3D();
@@ -531,32 +531,33 @@ class TestScene: Scene
         mParticlesDust.diffuse = aTexParticleDust.texture;
         mParticlesDust.blending = Transparent;
         mParticlesDust.depthWrite = false;
+        mParticlesDust.energy = 0.5f;
 
         auto eParticlesRight = createEntity3D(eCar);
-        emitterRight = New!Emitter(eParticlesRight, particleSystem, 20);
+        emitterRight = New!Emitter(eParticlesRight, particleSystem, 30);
         eParticlesRight.position = Vector3f(-1.2f, 0, -2.8f);
         emitterRight.minLifetime = 0.1f;
-        emitterRight.maxLifetime = 1.5f;
+        emitterRight.maxLifetime = 3.0f;
         emitterRight.minSize = 0.5f;
         emitterRight.maxSize = 1.0f;
         emitterRight.minInitialSpeed = 0.2f;
         emitterRight.maxInitialSpeed = 0.2f;
-        emitterRight.scaleStep = Vector2f(1, 1);
+        emitterRight.scaleStep = Vector2f(2, 2);
         emitterRight.material = mParticlesDust;
         eParticlesRight.castShadow = false;
         eParticlesRight.layer = 3;
         eParticlesRight.visible = true;
 
         auto eParticlesLeft = createEntity3D(eCar);
-        emitterLeft = New!Emitter(eParticlesLeft, particleSystem, 20);
+        emitterLeft = New!Emitter(eParticlesLeft, particleSystem, 30);
         eParticlesLeft.position = Vector3f(1.2f, 0, -2.8f);
         emitterLeft.minLifetime = 0.1f;
-        emitterLeft.maxLifetime = 1.5f;
+        emitterLeft.maxLifetime = 3.0f;
         emitterLeft.minSize = 0.5f;
         emitterLeft.maxSize = 1.0f;
         emitterLeft.minInitialSpeed = 0.2f;
         emitterLeft.maxInitialSpeed = 0.2f;
-        emitterLeft.scaleStep = Vector2f(1, 1);
+        emitterLeft.scaleStep = Vector2f(2, 2);
         emitterLeft.material = mParticlesDust;
         eParticlesLeft.castShadow = false;
         eParticlesLeft.layer = 3;
@@ -612,6 +613,7 @@ class TestScene: Scene
         actor.play();
     }
 
+    /*
     override void onJoystickButtonDown(int button)
     {
         if (button == SDL_CONTROLLER_BUTTON_A)
@@ -627,65 +629,7 @@ class TestScene: Scene
         else if (button == SDL_CONTROLLER_BUTTON_B)
             joystickButtonBPressed = false;
     }
-
-    override void onKeyDown(int key)
-    {
-        if (key == KEY_ESCAPE)
-        {
-            exitApplication();
-        }
-        else if (key == KEY_E)
-        {
-            if (carViewEnabled)
-            {
-                view = fpview;
-                carView.active = false;
-                fpview.active = true;
-                carViewEnabled = false;
-                character.rbody.active = true;
-                character.rbody.position = vehicle.rbody.position + vehicle.rbody.orientation.rotate(Vector3f(1.0f, 0.0f, 0.0f).normalized) * 4.0f + Vector3f(0, 3, 0);
-                helpText.text = helpTextFirstPerson;
-            }
-            else if (distance(fpview.cameraPosition, vehicle.rbody.position) <= 4.0f)
-            {
-                view = carView;
-                fpview.active = false;
-                carView.active = true;
-                carViewEnabled = true;
-                character.rbody.active = false;
-                helpText.text = helpTextVehicle;
-            }
-        }
-        else if (key == KEY_F1)
-        {
-            if (environment.skyMap is null)
-            {
-                environment.skyMap = skyCubemap; //aEnvmap.texture;
-                eSky.material = defaultSkyMaterial;
-
-                environment.environmentMap = null;
-                renderer.renderToCubemap(Vector3f(0, 5, 0), cubemap, cubemapRenderTarget);
-                environment.environmentMap = cubemap;
-            }
-            else
-            {
-                environment.skyMap = null;
-                eSky.material = rayleighSkyMaterial;
-
-                environment.environmentMap = null;
-                renderer.renderToCubemap(Vector3f(0, 5, 0), cubemap, cubemapRenderTarget);
-                environment.environmentMap = cubemap;
-            }
-        }
-        else if (key == KEY_F12)
-        {
-            takeScreenshot();
-        }
-        else if (key == KEY_BACKSPACE && guiVisible)
-        {
-            gui.inputKeyDown(NK_KEY_BACKSPACE);
-        }
-    }
+    */
 
     uint numScreenshots = 1;
     char[100] screenshotFilenameBuffer;
@@ -701,6 +645,20 @@ class TestScene: Scene
         while(exists(filename));
 
         sceneManager.application.saveScreenshot(filename);
+    }
+    
+    override void onKeyDown(int key)
+    {
+        if (key == KEY_ESCAPE)
+            exitApplication();
+        else if (key == KEY_BACKSPACE && guiVisible)
+            gui.inputKeyDown(NK_KEY_BACKSPACE);
+    }
+
+    override void onKeyUp(int key)
+    {
+        if (key == KEY_BACKSPACE && guiVisible)
+            gui.inputKeyUp(NK_KEY_BACKSPACE);
     }
 
     override void onMouseButtonDown(int button)
@@ -744,7 +702,7 @@ class TestScene: Scene
     override void onMouseButtonUp(int button)
     {
         if (guiVisible)
-        gui.inputButtonUp(button);
+            gui.inputButtonUp(button);
     }
 
     override void onTextInput(dchar unicode)
@@ -848,12 +806,13 @@ class TestScene: Scene
         Vector3f right = fpview.camera.characterMatrix.right;
         float speed = 6.0f;
         Vector3f dir = Vector3f(0, 0, 0);
-        if (eventManager.keyPressed[KEY_W]) dir += -forward;
-        if (eventManager.keyPressed[KEY_S]) dir += forward;
-        if (eventManager.keyPressed[KEY_A]) dir += -right;
-        if (eventManager.keyPressed[KEY_D]) dir += right;
+        if (inputManager.getButton("forward")) dir += -forward;
+        if (inputManager.getButton("back"))    dir += forward;
+        if (inputManager.getButton("left"))    dir += -right;
+        if (inputManager.getButton("right"))   dir += right;
         character.move(dir.normalized, speed);
-        if (eventManager.keyPressed[KEY_SPACE]) character.jump(2.0f);
+        
+        if (inputManager.getButtonDown("jump")) character.jump(2.0f);
         character.logicalUpdate();
     }
 
@@ -865,25 +824,27 @@ class TestScene: Scene
     {
         float accelerate = 100.0f;
 
+        /*
         if (eventManager.keyPressed[KEY_Z])
             vehicle.accelerateForward(accelerate);
         else if (eventManager.keyPressed[KEY_X])
             vehicle.accelerateBackward(accelerate);
+        */
 
         if (carViewEnabled)
         {
-            if (eventManager.keyPressed[KEY_W] || joystickButtonBPressed)
+            if (inputManager.getButton("forward")) // || joystickButtonBPressed
                 vehicle.accelerateForward(accelerate);
-            else if (eventManager.keyPressed[KEY_S] || joystickButtonAPressed)
+            else if (inputManager.getButton("back")) // || joystickButtonAPressed
                 vehicle.accelerateBackward(accelerate);
             else
                 vehicle.brake = false;
 
             float steering = min(45.0f * abs(1.0f / max(vehicle.speed, 0.01f)), 5.0f);
 
-            if (eventManager.keyPressed[KEY_A])
+            if (inputManager.getButton("left"))
                 vehicle.steer(-steering);
-            else if (eventManager.keyPressed[KEY_D])
+            else if (inputManager.getButton("right"))
                 vehicle.steer(steering);
             else if (eventManager.joystickAvailable)
             {
@@ -951,37 +912,49 @@ class TestScene: Scene
     char[100] lightsText;
 
     bool sunChanged = true;
-
-    override void onKeyUp(int key)
+    
+    void interact()
     {
-        if (key == KEY_DOWN || key == KEY_UP ||
-            key == KEY_LEFT || key == KEY_RIGHT)
-            sunChanged = true;
-            
-        if (key == KEY_G)
-            guiVisible = !guiVisible;
-        if (key == KEY_BACKSPACE && guiVisible)
-            gui.inputKeyUp(NK_KEY_BACKSPACE);
+        if (carViewEnabled)
+        {
+            view = fpview;
+            carView.active = false;
+            fpview.active = true;
+            carViewEnabled = false;
+            character.rbody.active = true;
+            character.rbody.position = vehicle.rbody.position + vehicle.rbody.orientation.rotate(Vector3f(1.0f, 0.0f, 0.0f).normalized) * 4.0f + Vector3f(0, 3, 0);
+            helpText.text = helpTextFirstPerson;
+        }
+        else if (distance(fpview.cameraPosition, vehicle.rbody.position) <= 4.0f)
+        {
+            view = carView;
+            fpview.active = false;
+            carView.active = true;
+            carViewEnabled = true;
+            character.rbody.active = false;
+            helpText.text = helpTextVehicle;
+        }
     }
 
     override void onLogicsUpdate(double dt)
     {
         updateUserInterface();
         
-        // Update our character, vehicle and physics
-        if (!carViewEnabled)
-            updateCharacter(dt);
-        updateVehicle(dt);
-        world.update(dt);
+        // Enter/exit the car
+        if (inputManager.getButtonDown("interact"))
+            interact();
 
-        // Place camera to character controller position
-        fpview.camera.position = character.rbody.position;
-
-        // Sun control
-        if (eventManager.keyPressed[KEY_DOWN]) sunPitch += 30.0f * dt;
-        if (eventManager.keyPressed[KEY_UP]) sunPitch -= 30.0f * dt;
-        if (eventManager.keyPressed[KEY_LEFT]) sunTurn += 30.0f * dt;
-        if (eventManager.keyPressed[KEY_RIGHT]) sunTurn -= 30.0f * dt;
+        // Sun control        
+        if (inputManager.getButton("sunDown")) sunPitch += 30.0f * dt;
+        if (inputManager.getButton("sunUp")) sunPitch -= 30.0f * dt;
+        if (inputManager.getButton("sunLeft")) sunTurn += 30.0f * dt;
+        if (inputManager.getButton("sunRight")) sunTurn -= 30.0f * dt;
+        
+        if (inputManager.getButtonUp("sunDown") ||
+            inputManager.getButtonUp("sunUp") ||
+            inputManager.getButtonUp("sunLeft") ||
+            inputManager.getButtonUp("sunRight"))
+            sunChanged = true;
 
         environment.sunRotation =
             rotationQuaternion(Axis.y, degtorad(sunTurn)) *
@@ -994,7 +967,44 @@ class TestScene: Scene
             environment.environmentMap = cubemap;
             sunChanged = false;
         }
+        
+        if (inputManager.getButtonDown("toggleEnvironment"))
+        {
+            if (environment.skyMap is null)
+            {
+                environment.skyMap = skyCubemap; //aEnvmap.texture;
+                eSky.material = defaultSkyMaterial;
 
+                environment.environmentMap = null;
+                renderer.renderToCubemap(Vector3f(0, 5, 0), cubemap, cubemapRenderTarget);
+                environment.environmentMap = cubemap;
+            }
+            else
+            {
+                environment.skyMap = null;
+                eSky.material = rayleighSkyMaterial;
+
+                environment.environmentMap = null;
+                renderer.renderToCubemap(Vector3f(0, 5, 0), cubemap, cubemapRenderTarget);
+                environment.environmentMap = cubemap;
+            }
+        }
+        
+        // Other controls
+        if (inputManager.getButtonDown("toggleGUI"))
+            guiVisible = !guiVisible;
+            
+        if (inputManager.getButtonDown("screenshot"))
+            takeScreenshot();
+            
+        // Update our character, vehicle and physics
+        if (!carViewEnabled)
+            updateCharacter(dt);
+        updateVehicle(dt);
+        world.update(dt);
+
+        // Place camera to character controller position
+        fpview.camera.position = character.rbody.position;
 
         // Update infoText with some debug info
         float speed = vehicle.speed * 3.6f;
@@ -1041,9 +1051,9 @@ class MyApplication: SceneApplication
 
 void main(string[] args)
 {
-    enableMemoryProfiler(true);
+    //enableMemoryProfiler(true);
     MyApplication app = New!MyApplication(args);
     app.run();
     Delete(app);
-    printMemoryLeaks();
+    //printMemoryLeaks();
 }
