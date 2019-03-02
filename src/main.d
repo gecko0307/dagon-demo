@@ -225,9 +225,6 @@ class TestScene: Scene
         Color4f(0.1, 1, 1, 1),
         Color4f(0.1, 0.5, 1, 1)
     ];
-
-    //bool joystickButtonAPressed;
-    //bool joystickButtonBPressed;
     
     NuklearGUI gui;
     bool guiVisible = false;
@@ -613,24 +610,6 @@ class TestScene: Scene
         actor.play();
     }
 
-    /*
-    override void onJoystickButtonDown(int button)
-    {
-        if (button == SDL_CONTROLLER_BUTTON_A)
-            joystickButtonAPressed = true;
-        else if (button == SDL_CONTROLLER_BUTTON_B)
-            joystickButtonBPressed = true;
-    }
-
-    override void onJoystickButtonUp(int button)
-    {
-        if (button == SDL_CONTROLLER_BUTTON_A)
-            joystickButtonAPressed = false;
-        else if (button == SDL_CONTROLLER_BUTTON_B)
-            joystickButtonBPressed = false;
-    }
-    */
-
     uint numScreenshots = 1;
     char[100] screenshotFilenameBuffer;
     void takeScreenshot()
@@ -833,9 +812,9 @@ class TestScene: Scene
 
         if (carViewEnabled)
         {
-            if (inputManager.getButton("forward")) // || joystickButtonBPressed
+            if (inputManager.getButton("forward"))
                 vehicle.accelerateForward(accelerate);
-            else if (inputManager.getButton("back")) // || joystickButtonAPressed
+            else if (inputManager.getButton("back"))
                 vehicle.accelerateBackward(accelerate);
             else
                 vehicle.brake = false;
