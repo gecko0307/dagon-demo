@@ -379,41 +379,38 @@ class TestScene: Scene
         rayleighSkyMaterial = createMaterial(rRayleighShader);
         rayleighSkyMaterial.depthWrite = false;
         rayleighSkyMaterial.culling = false;
-        eSky = createSky(); //rayleighSkyMaterial
+        eSky = createSky();
 
         // Terrain
         auto eTerrain = createEntity3D();
-        //eTerrain.scaling = Vector3f(0.5, 0.25, 0.5);
         auto heightmap = New!ImageHeightmap(aHeightmap.texture.image, 20, assetManager);
         auto terrain = New!Terrain(256, 100, heightmap, assetManager);
         Vector3f size = Vector3f(256, 0, 256) * eTerrain.scaling;
         eTerrain.drawable = terrain;
-        //eTerrain.castShadow = false;
         eTerrain.position = Vector3f(-size.x * 0.5, 0, -size.z * 0.5);
         eTerrain.solid = true;
         eTerrain.dynamic = false;
         
-        auto terrainShader = New!TerrainShader(terrain, assetManager);
+        auto mTerrain = createTerrainMaterial(terrainShader);
         
-        auto mGround = createMaterial(terrainShader);
-        mGround.diffuse = aTexGroundDiffuse.texture;
-        mGround.textureScale = Vector2f(50, 50);
-        mGround.normal = aTexGroundNormal.texture;
-        mGround.roughness = 0.8f;
+        mTerrain.diffuse = aTexGroundDiffuse.texture;
+        mTerrain.textureScale = Vector2f(50, 50);
+        mTerrain.normal = aTexGroundNormal.texture;
+        mTerrain.roughness = 0.8f;
         
-        mGround.diffuse2 = aTexGrassDiffuse.texture;
-        mGround.splatmap2 = aSplatmapGrass.texture;
-        mGround.textureScale2 = Vector2f(100, 100);
-        mGround.normal2 = aTexGrassNormal.texture;
-        mGround.roughness2 = 1.0f;
+        mTerrain.diffuse2 = aTexGrassDiffuse.texture;
+        mTerrain.splatmap2 = aSplatmapGrass.texture;
+        mTerrain.textureScale2 = Vector2f(100, 100);
+        mTerrain.normal2 = aTexGrassNormal.texture;
+        mTerrain.roughness2 = 1.0f;
         
-        mGround.diffuse3 = aTexPavementDiffuse.texture;
-        mGround.splatmap3 = aSplatmapPavement.texture;
-        mGround.textureScale3 = Vector2f(100, 100);
-        mGround.normal3 = aTexPavementNormal.texture;
-        mGround.roughness3 = 0.5f;
+        mTerrain.diffuse3 = aTexPavementDiffuse.texture;
+        mTerrain.splatmap3 = aSplatmapPavement.texture;
+        mTerrain.textureScale3 = Vector2f(100, 100);
+        mTerrain.normal3 = aTexPavementNormal.texture;
+        mTerrain.roughness3 = 0.5f;
 
-        eTerrain.material = mGround;
+        eTerrain.material = mTerrain;
         
         auto decalMat = createDecalMaterial();
         decalMat.diffuse = aTexFootprint.texture;
@@ -451,10 +448,6 @@ class TestScene: Scene
         RigidBody bGround = world.addStaticBody(Vector3f(0.0f, 0.0f, 0.0f));
         auto gGround = New!GeomBox(world, Vector3f(100.0f, 1.0f, 100.0f));
         world.addShapeComponent(bGround, gGround, Vector3f(0.0f, -2.0f, 0.0f), 1.0f);
-        //auto eGround = createEntity3D();
-        //eGround.drawable = New!ShapePlane(200, 200, 100, assetManager);
-        //eGround.material = mGround;
-        //eGround.castShadow = false;
 
         // dmech geometries for dynamic objects
         gLightBall = New!GeomSphere(world, lightBallRadius);
@@ -521,7 +514,6 @@ class TestScene: Scene
         auto mParticlesSmoke = createParticleMaterial();
         mParticlesSmoke.diffuse = aTexParticleSmoke.texture;
         mParticlesSmoke.normal = aTexParticleDustNormal.texture;
-        //mParticlesSmoke.particleSphericalNormal = true;
         mParticlesSmoke.blending = Transparent;
         mParticlesSmoke.depthWrite = false;
         mParticlesSmoke.energy = 1.0f;
@@ -829,13 +821,6 @@ class TestScene: Scene
     void updateVehicle(double dt)
     {
         float accelerate = 100.0f;
-
-        /*
-        if (eventManager.keyPressed[KEY_Z])
-            vehicle.accelerateForward(accelerate);
-        else if (eventManager.keyPressed[KEY_X])
-            vehicle.accelerateBackward(accelerate);
-        */
 
         if (carViewEnabled)
         {
