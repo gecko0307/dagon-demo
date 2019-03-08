@@ -345,7 +345,7 @@ class TestScene: Scene
         renderer.glow.radius = 8;
         renderer.glow.brightness = 0.5;
         renderer.glow.minLuminanceThreshold = 0.0;
-        renderer.glow.maxLuminanceThreshold = 5.0;
+        renderer.glow.maxLuminanceThreshold = 2.0;
         renderer.lensDistortion.enabled = false;
         renderer.lensDistortion.dispersion = 0.2;
         renderer.antiAliasing.enabled = true;
@@ -693,7 +693,7 @@ class TestScene: Scene
         {
             Vector3f pos = fpview.camera.position + fpview.camera.characterMatrix.forward * -2.0f + Vector3f(0, 1, 0);
             Color4f color = lightColors[uniform(0, lightColors.length)];
-            createLightBall(pos, color, 20.0f, lightBallRadius, 5.0f);
+            createLightBall(pos, color, 10.0f, lightBallRadius, 5.0f);
         }
     }
     
@@ -717,7 +717,7 @@ class TestScene: Scene
 
     Entity createLightBall(Vector3f pos, Color4f color, float energy, float areaRadius, float volumeRadius)
     {
-        auto light = createLightSphere(pos, color, energy * 5, volumeRadius, areaRadius);
+        auto light = createLightSphere(pos, color, energy, volumeRadius, areaRadius);
 
         if (light)
         {
