@@ -349,8 +349,8 @@ class TestScene: Scene
         renderer.lensDistortion.enabled = false;
         renderer.lensDistortion.dispersion = 0.2;
         renderer.antiAliasing.enabled = true;
-        renderer.lut.texture = aTexColorTable.texture;
-        renderer.vignette.texture = aTexVignette.texture;
+        //renderer.lut.texture = aTexColorTable.texture;
+        //renderer.vignette.texture = aTexVignette.texture;
 
         // Common materials
         auto matDefault = createMaterial();
@@ -966,6 +966,7 @@ class TestScene: Scene
                 environment.skyMap = skyCubemap; //aEnvmap.texture;
                 eSky.material = defaultSkyMaterial;
 
+                environment.skyBrightness = 2.0f;
                 environment.environmentMap = null;
                 renderer.renderToCubemap(Vector3f(0, 5, 0), cubemap, cubemapRenderTarget);
                 environment.environmentMap = cubemap;
@@ -975,6 +976,7 @@ class TestScene: Scene
                 environment.skyMap = null;
                 eSky.material = rayleighSkyMaterial;
 
+                environment.skyBrightness = 1.0f;
                 environment.environmentMap = null;
                 renderer.renderToCubemap(Vector3f(0, 5, 0), cubemap, cubemapRenderTarget);
                 environment.environmentMap = cubemap;
