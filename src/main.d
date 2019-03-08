@@ -140,6 +140,11 @@ class TestScene: Scene
     TextureAsset aTexGroundNormal;
     TextureAsset aTexGroundHeight;
     TextureAsset aTexGroundRoughness;
+    
+    TextureAsset aTexPavementDiffuse;
+    TextureAsset aTexPavementNormal;
+    TextureAsset aTexGrassDiffuse;
+    TextureAsset aTexGrassNormal;
 
     TextureAsset aTexCrateDiffuse;
 
@@ -156,6 +161,8 @@ class TestScene: Scene
     TextureAsset aTexDwarf;
 
     TextureAsset aHeightmap;
+    TextureAsset aSplatmapPavement;
+    TextureAsset aSplatmapGrass;
 
     TextureAsset aTexFootprint;
     TextureAsset aTexFootprintNormal;
@@ -244,6 +251,11 @@ class TestScene: Scene
         aTexGroundNormal = addTextureAsset("data/terrain/desert-normal.png");
         aTexGroundHeight = addTextureAsset("data/terrain/desert-height.png");
         aTexGroundRoughness = addTextureAsset("data/terrain/desert-roughness.png");
+        
+        aTexPavementDiffuse = addTextureAsset("data/terrain/pavement-albedo.png");
+        aTexPavementNormal = addTextureAsset("data/terrain/pavement-normal.png");
+        aTexGrassDiffuse = addTextureAsset("data/terrain/grass-albedo.png");
+        aTexGrassNormal = addTextureAsset("data/terrain/grass-normal.png");
 
         aTexCrateDiffuse = addTextureAsset("data/textures/crate.png");
 
@@ -268,6 +280,8 @@ class TestScene: Scene
         aTexDwarf = addTextureAsset("data/iqm/dwarf.jpg");
 
         aHeightmap = addTextureAsset("data/terrain/heightmap.png");
+        aSplatmapPavement = addTextureAsset("data/terrain/splatmap-pavement.png");
+        aSplatmapGrass = addTextureAsset("data/terrain/splatmap-grass.png");
 
         aTexFootprint = addTextureAsset("data/textures/footprint.png");
         aTexFootprintNormal = addTextureAsset("data/textures/footprint-normal.png");
@@ -344,14 +358,6 @@ class TestScene: Scene
         matDefault.metallic = 0.0f;
         matDefault.culling = false;
 
-        auto mGround = createMaterial();
-        mGround.diffuse = aTexGroundDiffuse.texture;
-        mGround.normal = aTexGroundNormal.texture;
-        mGround.height = aTexGroundHeight.texture;
-        mGround.roughness = aTexGroundRoughness.texture;
-        mGround.parallax = ParallaxSimple;
-        mGround.textureScale = Vector2f(40, 40);
-
         auto mCrate = createMaterial();
         mCrate.diffuse = aTexCrateDiffuse.texture;
         mCrate.roughness = 0.9f;
@@ -385,8 +391,29 @@ class TestScene: Scene
         //eTerrain.castShadow = false;
         eTerrain.position = Vector3f(-size.x * 0.5, 0, -size.z * 0.5);
         eTerrain.solid = true;
-        eTerrain.material = mGround;
         eTerrain.dynamic = false;
+        
+        auto terrainShader = New!TerrainShader(terrain, assetManager);
+        
+        auto mGround = createMaterial(terrainShader);
+        mGround.diffuse = aTexGroundDiffuse.texture;
+        mGround.textureScale = Vector2f(50, 50);
+        mGround.normal = aTexGroundNormal.texture;
+        mGround.roughness = 0.8f;
+        
+        mGround.diffuse2 = aTexGrassDiffuse.texture;
+        mGround.splatmap2 = aSplatmapGrass.texture;
+        mGround.textureScale2 = Vector2f(100, 100);
+        mGround.normal2 = aTexGrassNormal.texture;
+        mGround.roughness2 = 1.0f;
+        
+        mGround.diffuse3 = aTexPavementDiffuse.texture;
+        mGround.splatmap3 = aSplatmapPavement.texture;
+        mGround.textureScale3 = Vector2f(100, 100);
+        mGround.normal3 = aTexPavementNormal.texture;
+        mGround.roughness3 = 0.5f;
+
+        eTerrain.material = mGround;
         
         auto decalMat = createDecalMaterial();
         decalMat.diffuse = aTexFootprint.texture;
@@ -394,9 +421,9 @@ class TestScene: Scene
         decalMat.depthWrite = false;
         decalMat.normal = aTexFootprintNormal.texture;
         decalMat.roughness = 0.4f;
-        //decalMat.metallic = 1.0f;
-        //decalMat.emission = aTexFootprintE.texture;
-        //decalMat.energy = 10.0f;
+        decalMat.outputColor = false;
+        decalMat.outputNormal = true;
+        decalMat.outputPBR = true;
         
         foreach(i; 0..footprints.length)
         {
