@@ -118,6 +118,13 @@ class VehicleController: EntityController
 
         torqueAcc = 0.0f;
     }
+    
+    void resetBrake()
+    {
+        brake = false;
+        foreach(i, w; wheels)
+            w.brake = false;
+    }
 
     void accelerateForward(float t)
     {
@@ -353,8 +360,8 @@ class VehicleController: EntityController
                     w.rollSpeed = -maxRollSpeed;
             }
             
-            if (abs(w.rollSpeed) < 0.2f)
-                w.rollSpeed = 0.0f;
+            //if (abs(w.rollSpeed) < 0.01f)
+            //    w.rollSpeed = 0.0f;
 
             w.roll += radtodeg(w.rollSpeed) * dt;
             if (w.roll > 360.0f) w.roll -= 360.0f;

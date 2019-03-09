@@ -346,7 +346,7 @@ class TestScene: Scene
         renderer.glow.brightness = 0.5;
         renderer.glow.minLuminanceThreshold = 0.0;
         renderer.glow.maxLuminanceThreshold = 2.0;
-        renderer.lensDistortion.enabled = false;
+        renderer.lensDistortion.enabled = true;
         renderer.lensDistortion.dispersion = 0.2;
         renderer.antiAliasing.enabled = true;
         renderer.lut.texture = aTexColorTable.texture;
@@ -489,6 +489,8 @@ class TestScene: Scene
         auto gBox = New!GeomBox(world, Vector3f(1.3f, 0.65f, 2.8f));
         auto b = world.addDynamicBody(Vector3f(0, 0, 0), 0.0f);
         b.damping = 0.6f;
+        b.stopThreshold = 0.01f;
+        b.stopThresholdAngular = 0.01f;
         vehicle = New!VehicleController(eCar, b, world);
         eCar.controller = vehicle;
         world.addShapeComponent(b, gBox, Vector3f(0.0f, 0.8f, 0.0f), 1500.0f);
@@ -553,7 +555,7 @@ class TestScene: Scene
         emitterRight = New!Emitter(eParticlesRight, particleSystem, 30);
         eParticlesRight.position = Vector3f(-1.2f, 0, -2.8f);
         emitterRight.minLifetime = 0.1f;
-        emitterRight.maxLifetime = 3.0f;
+        emitterRight.maxLifetime = 2.0f;
         emitterRight.minSize = 0.5f;
         emitterRight.maxSize = 1.0f;
         emitterRight.minInitialSpeed = 0.2f;
@@ -568,7 +570,7 @@ class TestScene: Scene
         emitterLeft = New!Emitter(eParticlesLeft, particleSystem, 30);
         eParticlesLeft.position = Vector3f(1.2f, 0, -2.8f);
         emitterLeft.minLifetime = 0.1f;
-        emitterLeft.maxLifetime = 3.0f;
+        emitterLeft.maxLifetime = 2.0f;
         emitterLeft.minSize = 0.5f;
         emitterLeft.maxSize = 1.0f;
         emitterLeft.minInitialSpeed = 0.2f;
@@ -829,7 +831,7 @@ class TestScene: Scene
             else if (inputManager.getButton("back"))
                 vehicle.accelerateBackward(accelerate);
             else
-                vehicle.brake = false;
+                vehicle.resetBrake();
 
             float steering = min(45.0f * abs(1.0f / max(vehicle.speed, 0.01f)), 5.0f);
 
