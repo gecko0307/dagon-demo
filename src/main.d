@@ -180,8 +180,8 @@ class TestScene: Scene
     ShapeSphere sSphere;
 
     LightSource sun;
-    float sunPitch = -45.0f;
-    float sunTurn = 10.0f;
+    float sunPitch = -30.0f;
+    float sunTurn = 130.0f;
 
     Material rayleighSkyMaterial;
 
@@ -298,7 +298,7 @@ class TestScene: Scene
     {
         super.onAllocate();
 
-        environment.sunEnergy = 20.0f;
+        environment.sunEnergy = 15.0f;
         environment.fogEnd = 1000.0f;
         environment.atmosphericFog = true;
         
@@ -311,7 +311,7 @@ class TestScene: Scene
         skyCubemap.setFaceImage(CubeFace.PositiveY, aTexSkyTop.image);
         skyCubemap.setFaceImage(CubeFace.NegativeY, aTexSkyBottom.image);
         environment.skyMap = skyCubemap;
-        environment.skyBrightness = 2.0f;
+        environment.skyBrightness = 1.5f;
         environment.environmentBrightness = 1.0f;
 
         sun = createLightSun(Quaternionf.identity, environment.sunColor, environment.sunEnergy);
@@ -349,7 +349,7 @@ class TestScene: Scene
         renderer.lensDistortion.enabled = false;
         renderer.lensDistortion.dispersion = 0.2;
         renderer.antiAliasing.enabled = true;
-        //renderer.lut.texture = aTexColorTable.texture;
+        renderer.lut.texture = aTexColorTable.texture;
         //renderer.vignette.texture = aTexVignette.texture;
 
         // Common materials
@@ -965,8 +965,7 @@ class TestScene: Scene
             {
                 environment.skyMap = skyCubemap; //aEnvmap.texture;
                 eSky.material = defaultSkyMaterial;
-
-                environment.skyBrightness = 2.0f;
+                environment.skyBrightness = 1.5f;
                 environment.environmentMap = null;
                 renderer.renderToCubemap(Vector3f(0, 5, 0), cubemap, cubemapRenderTarget);
                 environment.environmentMap = cubemap;
@@ -975,7 +974,6 @@ class TestScene: Scene
             {
                 environment.skyMap = null;
                 eSky.material = rayleighSkyMaterial;
-
                 environment.skyBrightness = 1.0f;
                 environment.environmentMap = null;
                 renderer.renderToCubemap(Vector3f(0, 5, 0), cubemap, cubemapRenderTarget);
