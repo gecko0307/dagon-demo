@@ -183,8 +183,6 @@ class TestScene: Scene
     float sunPitch = -30.0f;
     float sunTurn = 130.0f;
 
-    Material rayleighSkyMaterial;
-
     CubemapRenderTarget cubemapRenderTarget;
     Cubemap cubemap;
 
@@ -374,10 +372,6 @@ class TestScene: Scene
         matWheel.metallic = 0.0f;
 
         // Sky entity
-        auto rRayleighShader = New!RayleighShader(assetManager);
-        rayleighSkyMaterial = createMaterial(rRayleighShader);
-        rayleighSkyMaterial.depthWrite = false;
-        rayleighSkyMaterial.culling = false;
         eSky = createSky();
 
         // Terrain
@@ -960,6 +954,7 @@ class TestScene: Scene
             sunChanged = false;
         }
         
+        /*
         if (inputManager.getButtonDown("toggleEnvironment"))
         {
             if (environment.skyMap is null)
@@ -981,6 +976,7 @@ class TestScene: Scene
                 environment.environmentMap = cubemap;
             }
         }
+        */
         
         // Other controls
         if (inputManager.getButtonDown("toggleGUI"))
