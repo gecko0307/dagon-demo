@@ -346,7 +346,7 @@ class TestScene: Scene
         renderer.glow.brightness = 0.5;
         renderer.glow.minLuminanceThreshold = 0.0;
         renderer.glow.maxLuminanceThreshold = 2.0;
-        renderer.lensDistortion.enabled = true;
+        renderer.lensDistortion.enabled = false;
         renderer.lensDistortion.dispersion = 0.2;
         renderer.antiAliasing.enabled = true;
         renderer.lut.texture = aTexColorTable.texture;
