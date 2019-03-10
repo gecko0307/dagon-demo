@@ -224,7 +224,7 @@ class TestScene: Scene
     Entity eMessage;
 
     Color4f[7] lightColors = [
-        Color4f(1, 0.1, 0.1, 1),
+        Color4f(1.0, 0.1, 0.1, 1),
         Color4f(1, 0.5, 0.1, 1),
         Color4f(1, 1, 0.1, 1),
         Color4f(0.1, 1, 0.1, 1),
@@ -311,7 +311,7 @@ class TestScene: Scene
         skyCubemap.setFaceImage(CubeFace.PositiveY, aTexSkyTop.image);
         skyCubemap.setFaceImage(CubeFace.NegativeY, aTexSkyBottom.image);
         environment.skyMap = skyCubemap;
-        environment.skyBrightness = 1.5f;
+        environment.skyBrightness = 1.0f;
         environment.environmentBrightness = 1.0f;
 
         sun = createLightSun(Quaternionf.identity, environment.sunColor, environment.sunEnergy);
@@ -335,7 +335,7 @@ class TestScene: Scene
         // Post-processing settings
         renderer.hdr.tonemapper = Tonemapper.ACES;
         renderer.hdr.autoExposure = false;
-        renderer.hdr.exposure = 0.3f;
+        renderer.hdr.exposure = 0.5f;
         renderer.ssao.enabled = true;
         renderer.ssao.power = 10.0;
         renderer.motionBlur.enabled = true;
@@ -343,9 +343,8 @@ class TestScene: Scene
         renderer.motionBlur.samples = 30;
         renderer.glow.enabled = true;
         renderer.glow.radius = 8;
-        renderer.glow.brightness = 1.0;
-        renderer.glow.minLuminanceThreshold = 0.0;
-        renderer.glow.maxLuminanceThreshold = 1.0;
+        renderer.glow.luminanceThreshold = 0.7;
+        renderer.glow.brightness = 0.5;
         renderer.lensDistortion.enabled = false;
         renderer.lensDistortion.dispersion = 0.2;
         renderer.antiAliasing.enabled = true;
@@ -695,7 +694,7 @@ class TestScene: Scene
         {
             Vector3f pos = fpview.camera.position + fpview.camera.characterMatrix.forward * -2.0f + Vector3f(0, 1, 0);
             Color4f color = lightColors[uniform(0, lightColors.length)];
-            createLightBall(pos, color, 10.0f, lightBallRadius, 5.0f);
+            createLightBall(pos, color, 3.0f, lightBallRadius, 5.0f);
         }
     }
     
@@ -967,7 +966,7 @@ class TestScene: Scene
             {
                 environment.skyMap = skyCubemap; //aEnvmap.texture;
                 eSky.material = defaultSkyMaterial;
-                environment.skyBrightness = 1.5f;
+                //environment.skyBrightness = 1.0f;
                 environment.environmentMap = null;
                 renderer.renderToCubemap(Vector3f(0, 5, 0), cubemap, cubemapRenderTarget);
                 environment.environmentMap = cubemap;
@@ -976,7 +975,7 @@ class TestScene: Scene
             {
                 environment.skyMap = null;
                 eSky.material = rayleighSkyMaterial;
-                environment.skyBrightness = 1.0f;
+                //environment.skyBrightness = 1.0f;
                 environment.environmentMap = null;
                 renderer.renderToCubemap(Vector3f(0, 5, 0), cubemap, cubemapRenderTarget);
                 environment.environmentMap = cubemap;
