@@ -343,9 +343,9 @@ class TestScene: Scene
         renderer.motionBlur.samples = 30;
         renderer.glow.enabled = true;
         renderer.glow.radius = 8;
-        renderer.glow.brightness = 0.5;
+        renderer.glow.brightness = 1.0;
         renderer.glow.minLuminanceThreshold = 0.0;
-        renderer.glow.maxLuminanceThreshold = 2.0;
+        renderer.glow.maxLuminanceThreshold = 1.0;
         renderer.lensDistortion.enabled = false;
         renderer.lensDistortion.dispersion = 0.2;
         renderer.antiAliasing.enabled = true;
