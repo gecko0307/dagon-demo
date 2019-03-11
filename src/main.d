@@ -205,6 +205,7 @@ class TestScene: Scene
     Entity eCar;
     Entity[4] eWheels;
     Entity[4] eTyres;
+    Material mHeadlight;
 
     Emitter emitterLeft;
     Emitter emitterRight;
@@ -478,7 +479,10 @@ class TestScene: Scene
         eCar.drawable = aCar.entity;
         eCar.position = Vector3f(30.0f, 5.0f, 0.0f);
         eCar.layer = 2;
-
+        mHeadlight = aCar.material("matGlassHeadlights.mat");
+        mHeadlight.emission = mHeadlight.diffuse.texture;
+        //mHeadlight.energy = 10.0f;
+        
         auto gBox = New!GeomBox(world, Vector3f(1.3f, 0.65f, 2.8f));
         auto b = world.addDynamicBody(Vector3f(0, 0, 0), 0.0f);
         b.damping = 0.6f;
@@ -953,6 +957,11 @@ class TestScene: Scene
             environment.environmentMap = cubemap;
             sunChanged = false;
         }
+        
+        if (sunPitch > -20.0f)
+            mHeadlight.energy = 10.0f;
+        else
+            mHeadlight.energy = 0.0f;
         
         /*
         if (inputManager.getButtonDown("toggleEnvironment"))
