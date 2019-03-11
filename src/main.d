@@ -205,7 +205,8 @@ class TestScene: Scene
     Entity eCar;
     Entity[4] eWheels;
     Entity[4] eTyres;
-    Material mHeadlight;
+    LightSource headlight1;
+    LightSource headlight2;
 
     Emitter emitterLeft;
     Emitter emitterRight;
@@ -479,9 +480,15 @@ class TestScene: Scene
         eCar.drawable = aCar.entity;
         eCar.position = Vector3f(30.0f, 5.0f, 0.0f);
         eCar.layer = 2;
-        mHeadlight = aCar.material("matGlassHeadlights.mat");
+        auto mBacklight = aCar.material("matGlassBacklights.mat");
+        mBacklight.emission = Color4f(1.0, 0.05, 0.05, 1);
+        mBacklight.energy = 10.0f;
+        
+        auto mHeadlight = aCar.material("matGlassHeadlights.mat");
         mHeadlight.emission = mHeadlight.diffuse.texture;
-        //mHeadlight.energy = 10.0f;
+        mHeadlight.energy = 20.0f;
+        headlight1 = createLightSpot(eCar.position, Color4f(1,1,1,1), 20, Quaternionf.identity, 30, 15, 20);
+        headlight2 = createLightSpot(eCar.position, Color4f(1,1,1,1), 20, Quaternionf.identity, 30, 15, 20);
         
         auto gBox = New!GeomBox(world, Vector3f(1.3f, 0.65f, 2.8f));
         auto b = world.addDynamicBody(Vector3f(0, 0, 0), 0.0f);
@@ -957,11 +964,12 @@ class TestScene: Scene
             environment.environmentMap = cubemap;
             sunChanged = false;
         }
+            
+        headlight1.position = Vector3f(1.0f, 0.65f, 2.5f) * vehicle.rbody.transformation;
+        headlight1.rotation = vehicle.rotation * rotationQuaternion!float(Axis.y, PI);
         
-        if (sunPitch > -20.0f)
-            mHeadlight.energy = 10.0f;
-        else
-            mHeadlight.energy = 0.0f;
+        headlight2.position = Vector3f(-1.0f, 0.65f, 2.5f) * vehicle.rbody.transformation;
+        headlight2.rotation = vehicle.rotation * rotationQuaternion!float(Axis.y, PI);
         
         /*
         if (inputManager.getButtonDown("toggleEnvironment"))

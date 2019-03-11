@@ -394,6 +394,11 @@ class VehicleController: EntityController
     {
         return rbody.position;
     }
+    
+    Vector3f direction()
+    {
+        return rbody.transformation.forward;
+    }
 
     Quaternionf rotation()
     {
