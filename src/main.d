@@ -346,7 +346,7 @@ class TestScene: Scene
         renderer.lensDistortion.enabled = false;
         renderer.lensDistortion.dispersion = 0.2;
         renderer.antiAliasing.enabled = true;
-        renderer.lut.texture = aTexColorTable.texture;
+        //renderer.lut.texture = aTexColorTable.texture;
         //renderer.vignette.texture = aTexVignette.texture;
 
         // Common materials
