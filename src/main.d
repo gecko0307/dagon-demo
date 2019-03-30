@@ -386,7 +386,7 @@ class TestScene: Scene
         eTerrain.solid = true;
         eTerrain.dynamic = false;
         
-        auto mTerrain = createTerrainMaterial(terrainShader);
+        auto mTerrain = createTerrainMaterial();
         
         mTerrain.diffuse = aTexGroundDiffuse.texture;
         mTerrain.textureScale = Vector2f(50, 50);
