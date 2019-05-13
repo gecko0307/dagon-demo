@@ -12,7 +12,7 @@ If you like Dagon, please support its development on [Patreon](https://www.patre
 
 Prerequisites
 -------------
-To run the demo, a number of libraries should be installed, namely SDL 2.0.8 and Freetype 2.8.1. We provide libraries for 32 and 64-bit Windows. They are automatically deployed when using DUB.
+To run the demo, a number of libraries should be installed, namely SDL 2.0.8, Freetype 2.8.1 and Nuklear. We provide libraries for 32 and 64-bit Windows. They are automatically deployed when using DUB.
 
 Building
 --------
