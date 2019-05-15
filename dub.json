@@ -16,7 +16,7 @@
     ],
 
     "dependencies": {
-        "dagon": "0.10.0"
+        "dagon": "~master"
     },
 
     "buildRequirements":[
@@ -26,7 +26,13 @@
     "sourcePaths": ["src"],
     "mainSourceFile": "src/main.d",
     
-    "sourceFiles-windows" : ["application.res"],
+    "postBuildCommands-windows-x86": [
+        "$PACKAGE_DIR\\rcedit-x86 \"dagondemo.exe\" --set-file-version \"0.11.0.0\" --set-product-version \"0.11.0\" --set-icon \"$PACKAGE_DIR\\icon.ico\""
+    ],
+    
+    "postBuildCommands-windows-x86_64": [
+        "$PACKAGE_DIR\\rcedit-x64 \"dagondemo.exe\" --set-file-version \"0.11.0.0\" --set-product-version \"0.11.0\" --set-icon \"$PACKAGE_DIR\\icon.ico\""
+    ],
 
     "configurations": [
         {
@@ -43,4 +49,3 @@
         }
     ]
 }
-
